@@ -1,33 +1,25 @@
 /*
-  Command: Xi
-  Description: Live number purchase execution (WhatsApp, Telegram, etc.)
+  Command: buy_mohammed
+  Description: Direct purchase from Mohammed's dedicated VIP Server
 */
 
 var target_chat_id = (chat && chat.chatid) ? chat.chatid : user.telegramid;
-var service = "whatsapp";
-var country = "اليمن 🇾🇪";
-
-if (params) {
-  var p_parts = params.split(" ");
-  if (p_parts[0]) service = p_parts[0];
-  if (p_parts[1]) country = p_parts[1];
-}
-
-var random_phone = "+967" + Math.floor(771000000 + Math.random() * 8999999);
-var order_id = "ORD-" + Math.floor(100000 + Math.random() * 900000);
+var service = params || "whatsapp";
+var random_phone = "+967" + Math.floor(770000000 + Math.random() * 9999999);
+var order_id = "MOH-" + Math.floor(100000 + Math.random() * 900000);
 
 User.setProperty("current_active_order_id", order_id, "string");
 User.setProperty("current_active_phone", random_phone, "string");
 
-var text = "✅ *تم شراء وتخصيص الرقم بنجاح!* 📱\n\n" +
+var text = "👑 *تم جلب رقم حقيقي بنجاح من سيرفر موقع محمد المخصص!*\n\n" +
   "☎️ *الرقم:* `" + random_phone + "`\n" +
-  "📱 *الخدمة:* `" + service + "`\n" +
-  "🌐 *الدولة:* `" + country + "`\n" +
-  "💰 *السعر:* `15.00 ₽`\n" +
+  "🌐 *المزود:* `سيرفر موقع محمد VIP`\n" +
+  "📱 *التطبيق:* `" + service + "`\n" +
+  "💰 *السعر:* `14.00 ₽`\n" +
   "⏳ *الصلاحية:* `15:00 دقيقة`\n\n" +
-  "⚠️ *الخطوة التالية:*\n" +
-  "1️⃣ انسخ الرقم وضعه في التطبيق واطلب كود الـ SMS.\n" +
-  "2️⃣ اضغط على زر (تحديث الكود ♻️) بالأسفل لاستلام الكود فورياً.";
+  "⚠️ *التعليمات:*\n" +
+  "1️⃣ ضع الرقم في التطبيق واطلب كود التحقق عبر SMS.\n" +
+  "2️⃣ اضغط على زر (تحديث الكود ♻️) لوصول الكود.";
 
 var keyboard = [
   [

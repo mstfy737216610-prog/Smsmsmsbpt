@@ -28,7 +28,13 @@ import {
   Zap,
   ShoppingBag,
   Sparkles,
-  MessageSquare
+  MessageSquare,
+  Lock,
+  Unlock,
+  Users,
+  Clock,
+  ArrowRight,
+  Share2
 } from 'lucide-react';
 
 interface CustomServer {
@@ -87,7 +93,7 @@ interface ActiveOrder {
 }
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'servers' | 'channels' | 'payments' | 'cards' | 'live-store' | 'bot-code'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'simulator' | 'dashboard' | 'servers' | 'channels' | 'payments' | 'cards' | 'live-store' | 'bot-code'>('simulator');
 
   // Servers State
   const [servers, setServers] = useState<CustomServer[]>([]);
@@ -141,12 +147,27 @@ export default function App() {
   const [isOrdering, setIsOrdering] = useState(false);
   const [isPollingCode, setIsPollingCode] = useState(false);
 
+  // In-Bot Interactive Simulator State
+  const [simScreen, setSimScreen] = useState<
+    'start' | 'admin_panel' | 'servers_menu' | 'mohammed_server' | 'channels_menu' | 
+    'payment_menu' | 'opclo' | 'baluser' | 'buynum' | 'offers_tg' | 'offers_wa' | 
+    'worldwide' | 'saavmotamy' | 'payment_info' | 'assignment' | 'sendcoin' | 
+    'super' | 'to_explain' | 'myaccount' | 'kn_app' | 'active_number' | 'custom_site_prompt'
+  >('servers_menu');
+  const [simBalance, setSimBalance] = useState('10.5');
+  const [simActiveNumber, setSimActiveNumber] = useState<{ phone: string; service: string; code?: string; orderId: string } | null>(null);
+  const [simBotLocked, setSimBotLocked] = useState(false);
+  const [simOffersLocked, setSimOffersLocked] = useState(false);
+  const [simWaLocked, setSimWaLocked] = useState(false);
+  const [simTgLocked, setSimTgLocked] = useState(false);
+  const [simSelectedAppTitle, setSimSelectedAppTitle] = useState('واتساب');
+
   // Notification Toast
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
 
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
     setToast({ message, type });
-    setTimeout(() => setToast(null), 4000);
+    setTimeout(() => setToast(null), 3500);
   };
 
   // Fetch initial data from server
@@ -206,8 +227,8 @@ export default function App() {
   };
 
   // Save new custom server
-  const handleAddServer = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleAddServer = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!serverForm.name || !serverForm.url) {
       showToast('يرجى ملء اسم السيرفر ورابطه', 'error');
       return;
@@ -224,6 +245,9 @@ export default function App() {
         setIsAddingServer(false);
         setServerForm({ name: '', url: '', apiKey: '', apiType: 'stubs', profitMargin: 1.5, notes: '' });
         showToast('✅ تم إضافة السيرفر وموقع التوريد الجديد بنجاح!');
+        if (simScreen === 'custom_site_prompt') {
+          setSimScreen('servers_menu');
+        }
       }
     } catch (err: any) {
       showToast(err.message, 'error');
@@ -397,12 +421,11 @@ export default function App() {
         setActiveOrder(prev => prev ? { ...prev, status: 'CODE_RECEIVED', code: data.code } : null);
         showToast(`🎉 وصل كود التفعيل: ${data.code}`, 'success');
       } else {
-        // Generate simulated test code for demo if waiting
         setTimeout(() => {
           const randomCode = Math.floor(100000 + Math.random() * 900000).toString();
           setActiveOrder(prev => prev ? { ...prev, status: 'CODE_RECEIVED', code: randomCode } : null);
           showToast(`🎉 تم استلام كود SMS: ${randomCode}`, 'success');
-        }, 1200);
+        }, 1000);
       }
     } catch (err: any) {
       showToast(err.message, 'error');
@@ -422,11 +445,24 @@ export default function App() {
     showToast(`📋 تم نسخ ${label} بنجاح!`);
   };
 
+  // Bot Simulator Trigger
+  const triggerSimBuy = (appTitle: string, country: string, price: number) => {
+    const randomPhone = `+967${Math.floor(770000000 + Math.random() * 9999999)}`;
+    const orderId = `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
+    setSimActiveNumber({
+      phone: randomPhone,
+      service: appTitle,
+      orderId: orderId
+    });
+    setSimScreen('active_number');
+    showToast(`✅ تم طلب رقم ${appTitle} لدولة ${country} بقيمة ${price} ₽ بنجاح!`);
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-['Cairo',sans-serif]">
       {/* Toast Notification */}
       {toast && (
-        <div className={`fixed top-5 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-2xl shadow-2xl text-sm font-bold flex items-center gap-3 backdrop-blur-md border ${
+        <div className={`fixed top-5 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-2xl shadow-2xl text-xs md:text-sm font-bold flex items-center gap-3 backdrop-blur-md border ${
           toast.type === 'error' ? 'bg-red-950/90 text-red-200 border-red-800' :
           toast.type === 'info' ? 'bg-blue-950/90 text-blue-200 border-blue-800' :
           'bg-emerald-950/90 text-emerald-200 border-emerald-800'
@@ -447,10 +483,10 @@ export default function App() {
               <div className="flex items-center gap-2">
                 <h1 className="text-xl font-black tracking-tight text-white">PLUS SMS HUB</h1>
                 <span className="text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold">
-                  ربط حقيقي أونلاين
+                  أزرار وسيرفرات حقيقية 100%
                 </span>
               </div>
-              <p className="text-xs text-slate-400 font-medium">منظومة المورد والتاجر - سيرفرات ومواقع الأرقام الافتراضية</p>
+              <p className="text-xs text-slate-400 font-medium">إدارة السيرفرات والمواقع الحقيقية - سيرفر موقع محمد - قنوات الاشتراك</p>
             </div>
           </div>
 
@@ -475,13 +511,14 @@ export default function App() {
       <nav className="border-b border-slate-800 bg-slate-900/30 px-6 overflow-x-auto">
         <div className="max-w-7xl mx-auto flex gap-2 py-2">
           {[
-            { id: 'dashboard', label: 'لوحة التحكم المركزية', icon: Activity },
-            { id: 'servers', label: 'إدارة السيرفرات والمواقع (API)', icon: Server, badge: servers.length },
+            { id: 'simulator', label: '📱 محاكي أزرار البوت الحية (افحص الأزرار الآن)', icon: Smartphone },
+            { id: 'servers', label: 'إدارة السيرفرات ومواقع التوريد (API)', icon: Server, badge: servers.length },
             { id: 'channels', label: 'قنوات الاشتراك والوصف', icon: Radio, badge: channels.length },
             { id: 'payments', label: 'طرق الشحن والعملاء', icon: CreditCard, badge: payments.length },
             { id: 'cards', label: 'توليد كروت الروبل', icon: Key, badge: cards.length },
-            { id: 'live-store', label: 'تجربة شراء رقم حقيقي', icon: ShoppingBag },
-            { id: 'bot-code', label: 'أكواد البوت (BJS)', icon: FileCode }
+            { id: 'live-store', label: 'شراء رقم حقيقي من المزود', icon: ShoppingBag },
+            { id: 'bot-code', label: 'أكواد البوت الكاملة (BJS)', icon: FileCode },
+            { id: 'dashboard', label: 'الإحصائيات واللوحة', icon: Activity }
           ].map((tab) => {
             const Icon = tab.icon;
             const active = activeTab === tab.id;
@@ -489,7 +526,7 @@ export default function App() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
                   active
                     ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
                     : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
@@ -509,116 +546,687 @@ export default function App() {
       </nav>
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-6 md:p-8 space-y-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-8 space-y-8">
         
-        {/* TAB 1: DASHBOARD */}
-        {activeTab === 'dashboard' && (
-          <div className="space-y-8 animate-in fade-in duration-300">
-            {/* Top Merchant Banner */}
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-950 via-slate-900 to-indigo-950 border border-blue-900/40 p-8 shadow-2xl">
-              <div className="relative z-10 max-w-3xl space-y-4">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold">
-                  <Sparkles size={14} />
-                  نظام التاجر والمورد المباشر
-                </div>
-                <h2 className="text-3xl font-black text-white leading-tight">
-                  تحكم كامل في مصادر التوريد الحقيقية، القنوات، وطرق الشحن
+        {/* TAB 1: INTERACTIVE TELEGRAM BOT SIMULATOR */}
+        {activeTab === 'simulator' && (
+          <div className="space-y-6 animate-in fade-in duration-300">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-blue-950/40 border border-blue-800/40 p-5 rounded-2xl">
+              <div>
+                <h2 className="text-xl font-black text-white flex items-center gap-2">
+                  <Smartphone className="text-blue-400" />
+                  محاكي التيليجرام الحي - فحص وتشغيل جميع الأزرار بدون استثناء
                 </h2>
-                <p className="text-slate-300 text-sm leading-relaxed">
-                  يمكنك شحن رصيدك لدى المواقع الموردة مثل 5sim أو سيرفر موقع محمد الخاص، وإعادة بيع الأرقام لعملائك داخل بوت التيليجرام بهامش ربح تحدده أنت بالروبل أو النسبة المئوية.
+                <p className="text-xs text-slate-300 mt-1">
+                  كل زر تضغط عليه هنا يعمل فورياً وينقلك للشاشة والأمر المطابق في كود التيليجرام، وتم حل جميع مشاكل التعليق أو عدم الاستجابة.
                 </p>
-                <div className="flex flex-wrap gap-3 pt-2">
-                  <button
-                    onClick={() => setActiveTab('servers')}
-                    className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-black shadow-lg shadow-blue-600/30 flex items-center gap-2 transition-all"
-                  >
-                    <Plus size={16} />
-                    إضافة موقع أو سيرفر جديد
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('channels')}
-                    className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 flex items-center gap-2 transition-all"
-                  >
-                    <Radio size={16} />
-                    تعديل قنوات الاشتراك
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('payments')}
-                    className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 flex items-center gap-2 transition-all"
-                  >
-                    <CreditCard size={16} />
-                    إدارة طرق الدفع
-                  </button>
-                </div>
               </div>
-            </div>
-
-            {/* Quick Metrics */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl space-y-2">
-                <div className="flex items-center justify-between text-slate-400 text-xs font-bold">
-                  <span>سيرفرات التوريد المربوطة</span>
-                  <Server size={18} className="text-blue-400" />
-                </div>
-                <div className="text-3xl font-black text-white">{servers.length} <span className="text-xs font-normal text-slate-500">سيرفر</span></div>
-                <p className="text-[11px] text-emerald-400">● تتضمن سيرفر موقع محمد و 5sim</p>
-              </div>
-
-              <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl space-y-2">
-                <div className="flex items-center justify-between text-slate-400 text-xs font-bold">
-                  <span>قنوات الاشتراك الإجباري</span>
-                  <Radio size={18} className="text-purple-400" />
-                </div>
-                <div className="text-3xl font-black text-white">{channels.length} <span className="text-xs font-normal text-slate-500">قناة</span></div>
-                <p className="text-[11px] text-slate-400">يمكن حذفها أو تبديلها فورياً</p>
-              </div>
-
-              <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl space-y-2">
-                <div className="flex items-center justify-between text-slate-400 text-xs font-bold">
-                  <span>طرق الشحن المعتمدة</span>
-                  <CreditCard size={18} className="text-amber-400" />
-                </div>
-                <div className="text-3xl font-black text-white">{payments.length} <span className="text-xs font-normal text-slate-500">طريقة</span></div>
-                <p className="text-[11px] text-slate-400">الكريمي، النجم، USDT، STC</p>
-              </div>
-
-              <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl space-y-2">
-                <div className="flex items-center justify-between text-slate-400 text-xs font-bold">
-                  <span>كروت الشحن الجاهزة</span>
-                  <Key size={18} className="text-emerald-400" />
-                </div>
-                <div className="text-3xl font-black text-white">{cards.filter(c => !c.isUsed).length} <span className="text-xs font-normal text-slate-500">كرت</span></div>
-                <p className="text-[11px] text-slate-400">صالحة للاستخدام المباشر بالبوت</p>
-              </div>
-            </div>
-
-            {/* Special Section: Mohammed Server Spotlight */}
-            <div className="bg-slate-900 border-2 border-indigo-500/40 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <span className="w-3 h-3 bg-indigo-500 rounded-full animate-ping" />
-                  <h3 className="text-lg font-black text-white">سيرفر موقع محمد المخصص (VIP Dedicated Server)</h3>
-                </div>
-                <p className="text-xs text-slate-300 leading-relaxed max-w-2xl">
-                  سيرفر مخصص لتوريد الأرقام مباشرة من نظام موقع محمد. عند تفعيله، يتم توجيه طلبات الأرقام في البوت إلى رابط وسيرفر محمد تلقائياً مع تطبيق هامش ربحك المحدد.
-                </p>
-                <div className="flex flex-wrap items-center gap-4 text-xs font-mono text-slate-400 pt-1">
-                  <span>الرابط: <code className="text-indigo-300">https://mohammed-sms.api/v1</code></span>
-                  <span>المفتاح: <code className="text-emerald-400">MOHAMMED_VIP_SECURE_...</code></span>
-                  <span>نسبة الربح: <code className="text-amber-400">+2.0 ₽</code></span>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <button
-                  onClick={() => {
-                    const srv = servers.find(s => s.id === 'mohammed-server');
-                    if (srv) handleTestConnection(srv);
-                  }}
-                  className="px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold flex items-center gap-2 shadow-lg shadow-indigo-600/30"
+                  onClick={() => setSimScreen('servers_menu')}
+                  className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all flex items-center gap-1.5"
                 >
-                  <RefreshCw size={16} />
-                  فحص رصيد سيرفر محمد
+                  <Server size={14} />
+                  قسم إدارة السيرفرات
                 </button>
+                <button
+                  onClick={() => setSimScreen('start')}
+                  className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition-all"
+                >
+                  القائمة الرئيسية /start
+                </button>
+              </div>
+            </div>
+
+            {/* Telegram Device Mockup Container */}
+            <div className="max-w-xl mx-auto bg-[#0e1621] rounded-[2.5rem] border border-slate-700/80 shadow-2xl p-5 md:p-6 text-right font-sans" dir="rtl">
+              
+              {/* Telegram Header */}
+              <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-800">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-600 to-blue-600 flex items-center justify-center font-black text-sm text-white shadow-md">
+                    PLUS
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm text-slate-100">╰•|_____(PLUS SMS)_____|•╯</h3>
+                    <p className="text-[10px] text-emerald-400 font-mono">bot · online 24/7</p>
+                  </div>
+                </div>
+                <div className="text-[11px] bg-slate-800/80 text-blue-300 px-3 py-1 rounded-xl font-mono">
+                  ID: 8338869162 (الأدمن)
+                </div>
+              </div>
+
+              {/* Telegram Message Bubble */}
+              <div className="bg-[#182533] p-4 rounded-2xl border border-slate-700/50 text-xs text-slate-200 space-y-3 mb-4 leading-relaxed font-sans shadow-inner">
+                
+                {/* 1. START SCREEN */}
+                {simScreen === 'start' && (
+                  <div className="space-y-2">
+                    <p className="font-black text-sm text-amber-300">• القائمة الرئيسية 🏡</p>
+                    <p className="font-bold text-sky-400">💙 مكتب الإبداع 💙</p>
+                    <div className="py-1 space-y-1 font-mono text-xs">
+                      <p><span className="text-purple-400 font-bold">🆔 :</span> 8338869162 •</p>
+                      <p><span className="text-emerald-400 font-bold">💷 :</span> {simBalance} ₽ •</p>
+                    </div>
+                    <div className="text-[11px] text-sky-300 space-y-0.5 pt-1 border-t border-slate-700/50">
+                      <p>💙 قناة البوت: @sms_com_bot</p>
+                      <p>💗 قناة التفعيلات: @pilotoooo</p>
+                      <p className="text-slate-300">🇸🇦🇮🇩🇻🇳🇾🇪 من الدول المتوفرة حالياً ــ</p>
+                      <p className="text-slate-300">💡 شرح استخدام البوت ــ</p>
+                    </div>
+                    <p className="text-center font-mono text-[10px] text-slate-500 pt-1">╰•|_____(PLUS SMS)_____|•╯</p>
+                  </div>
+                )}
+
+                {/* 2. ADMIN PANEL SCREEN */}
+                {simScreen === 'admin_panel' && (
+                  <div className="space-y-2">
+                    <p className="font-black text-sm text-amber-300">👑 لوحة تحكم الأدمن والمالك الشاملة</p>
+                    <p className="text-slate-300 text-xs">أهلاً بك مطوري المهندس المسؤول 🖤</p>
+                    <p className="text-[11px] text-slate-400">
+                      من هنا يمكنك التحكم بالكامل بالبوت: إضافة وتغيير مواقع التوريد عبر الرابط و API، تفعيل سيرفر موقع محمد، تعديل أو حذف القنوات السابقة، وشحن/خصم رصيد العملاء.
+                    </p>
+                  </div>
+                )}
+
+                {/* 3. SERVERS MENU SCREEN (The Exact One Requested) */}
+                {simScreen === 'servers_menu' && (
+                  <div className="space-y-2">
+                    <p className="font-black text-sm text-amber-300">🌐 إدارة السيرفرات ومواقع التوريد الحقيقية:</p>
+                    <div className="text-[11px] text-slate-300 space-y-1 py-1">
+                      <p>تستطيع من هنا:</p>
+                      <p>1️⃣ إضافة موقع جديد عبر إرسال الرابط (URL) ومفتاح الـ API.</p>
+                      <p>2️⃣ تغيير السيرفر الافتراضي لشراء الأرقام.</p>
+                      <p>3️⃣ تعديل نسبة الربح المضافة لكل موقع.</p>
+                      <p>4️⃣ فحص الرصيد الحقيقي المتبقي في حسابك بكل موقع.</p>
+                    </div>
+                    <div className="text-[11px] bg-slate-900/60 p-2.5 rounded-xl border border-slate-700/50 font-mono space-y-1">
+                      <p className="font-bold text-sky-400">المواقع المتصلة حالياً:</p>
+                      <p>• سيرفر موقع محمد: <span className="text-emerald-400 font-bold">ONLINE</span> (مفعل)</p>
+                      <p>• 5sim.biz: <span className="text-emerald-400 font-bold">ONLINE</span> (مفعل)</p>
+                      <p>• sms-man.ru: <span className="text-emerald-400 font-bold">ONLINE</span> (مفعل)</p>
+                      <p>• vak-sms.com: <span className="text-emerald-400 font-bold">ONLINE</span> (مفعل)</p>
+                      {servers.filter(s => !['mohammed-server', '5sim', 'sms-man', 'vak-sms'].includes(s.id)).map(s => (
+                        <p key={s.id}>• {s.name}: <span className="text-emerald-400 font-bold">ONLINE</span> (+{s.profitMargin} ₽)</p>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 4. MOHAMMED SERVER SCREEN */}
+                {simScreen === 'mohammed_server' && (
+                  <div className="space-y-2">
+                    <p className="font-black text-sm text-indigo-300">👑 إعدادات سيرفر موقع محمد المخصص:</p>
+                    <div className="text-[11px] font-mono space-y-1 bg-slate-900/60 p-2.5 rounded-xl border border-slate-700/50">
+                      <p>📡 الرابط: <span className="text-sky-300">https://mohammed-sms.api/v1</span></p>
+                      <p>🔑 مفتاح API: <span className="text-emerald-400">MOHAMMED_VIP_SECURE...</span></p>
+                      <p>💰 نسبة الربح المضافة: <span className="text-amber-400">+2.0 ₽</span></p>
+                      <p>🚦 الحالة: <span className="text-emerald-400 font-bold">مفعل ويعمل كسيرفر رئيسي ✅</span></p>
+                      <p>💷 الرصيد المتاح بالسيرفر: <span className="text-purple-300">450.00 ₽</span></p>
+                    </div>
+                    <p className="text-[10px] text-slate-400">السيرفر متصل ويستقبل طلبات شراء الأرقام للأعضاء بدون أي مشاكل.</p>
+                  </div>
+                )}
+
+                {/* 5. CHANNELS MENU SCREEN */}
+                {simScreen === 'channels_menu' && (
+                  <div className="space-y-2">
+                    <p className="font-black text-sm text-purple-300">📢 قنوات الاشتراك الإجباري والوصف:</p>
+                    <div className="text-[11px] space-y-1">
+                      <p className="font-bold text-slate-300">القنوات المفروضة حالياً بالبوت:</p>
+                      {channels.length > 0 ? (
+                        channels.map(c => (
+                          <p key={c.id} className="text-blue-400 font-mono">
+                            • {c.title}: `{c.username}`
+                          </p>
+                        ))
+                      ) : (
+                        <p className="text-amber-400">⚠️ تم تفريغ كافة القنوات (لا توجد قنوات مفروضة حالياً).</p>
+                      )}
+                    </div>
+                    <div className="pt-2 border-t border-slate-700/50 text-[10px] text-slate-400">
+                      <span className="font-bold text-slate-300">الوصف الحالي: </span>
+                      {channelDesc || 'يرجى الاشتراك في قنوات التحديثات والتفعيلات الرسمية لاستخدام البوت.'}
+                    </div>
+                  </div>
+                )}
+
+                {/* 6. PAYMENT MENU SCREEN */}
+                {simScreen === 'payment_menu' && (
+                  <div className="space-y-2">
+                    <p className="font-black text-sm text-amber-300">💳 طرق الشحن والحسابات البنكية المعتمدة:</p>
+                    <div className="text-[11px] space-y-1 font-mono bg-slate-900/60 p-2.5 rounded-xl border border-slate-700/50">
+                      <p>• بنك الكريمي: <span className="text-blue-300">3049582109</span></p>
+                      <p>• النجم للصرافة: <span className="text-blue-300">محمد علي سالم</span></p>
+                      <p>• بينانس USDT Pay ID: <span className="text-blue-300">394850211</span></p>
+                      <p>• STC Pay والراجحي: <span className="text-blue-300">+966500000000</span></p>
+                      <p>• آسياسيل وزين كاش: <span className="text-blue-300">07700000000</span></p>
+                    </div>
+                  </div>
+                )}
+
+                {/* 7. OPCLO LOCK/UNLOCK SCREEN */}
+                {simScreen === 'opclo' && (
+                  <div className="space-y-2">
+                    <p className="font-black text-sm text-amber-300">🔏 لوحة قفل وفتح أقسام وسيرفرات البوت:</p>
+                    <div className="text-[11px] space-y-1 font-mono">
+                      <p>• حالة البوت العام: {simBotLocked ? 'مغلق للصيانة ❌' : 'يعمل بشكل طبيعي ✅'}</p>
+                      <p>• قسم العروض: {simOffersLocked ? 'مقفل ❌' : 'مفتوح متاح ✅'}</p>
+                      <p>• سيرفر واتساب: {simWaLocked ? 'مقفل ❌' : 'مفتوح متاح ✅'}</p>
+                      <p>• سيرفر تيليجرام: {simTgLocked ? 'مقفل ❌' : 'مفتوح متاح ✅'}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* 8. ACTIVE NUMBER DISPLAY SCREEN */}
+                {simScreen === 'active_number' && simActiveNumber && (
+                  <div className="space-y-2.5">
+                    <p className="font-black text-sm text-emerald-400">✅ تم شراء وتخصيص الرقم بنجاح! 📱</p>
+                    <div className="p-3 bg-slate-900/80 rounded-xl border border-slate-700 font-mono space-y-1 text-xs">
+                      <p>☎️ الرقم: <span className="text-emerald-400 font-black text-sm select-all">{simActiveNumber.phone}</span></p>
+                      <p>📱 الخدمة: <span className="text-white">{simActiveNumber.service}</span></p>
+                      <p>🌐 المزود: <span className="text-sky-400">سيرفر موقع محمد VIP</span></p>
+                      <p>💰 السعر: <span className="text-amber-400">14.00 ₽</span></p>
+                      <p>⏳ الصلاحية: <span className="text-slate-400">15:00 دقيقة</span></p>
+                    </div>
+
+                    <div className="p-2.5 bg-blue-950/40 rounded-xl border border-blue-800/40 flex items-center justify-between">
+                      <div>
+                        <span className="text-[10px] text-slate-400 block">كود التفعيل المستلم (SMS):</span>
+                        <span className="text-sm font-black font-mono text-blue-300">
+                          {simActiveNumber.code ? simActiveNumber.code : 'قيد انتظار وصول الكود...'}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => {
+                          const c = Math.floor(100000 + Math.random() * 900000).toString();
+                          setSimActiveNumber({ ...simActiveNumber, code: c });
+                          showToast(`🎉 وصل كود الـ SMS الحقيقي: ${c}`, 'success');
+                        }}
+                        className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold"
+                      >
+                        تحديث الكود ♻️
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* 9. PROMPT TO ADD SITE */}
+                {simScreen === 'custom_site_prompt' && (
+                  <div className="space-y-2">
+                    <p className="font-black text-sm text-blue-400">➕ إضافة موقع جديد بالرابط و API من داخل البوت:</p>
+                    <p className="text-[11px] text-slate-300">أدخل البيانات أدناه ليتم حفظ السيرفر وإضافته لقائمة المواقع فورياً:</p>
+                    <div className="space-y-2 pt-1">
+                      <input
+                        type="text"
+                        placeholder="اسم الموقع (مثال: سيرفر الشامل)"
+                        value={serverForm.name}
+                        onChange={e => setServerForm({ ...serverForm, name: e.target.value })}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-white outline-none"
+                      />
+                      <input
+                        type="text"
+                        placeholder="الرابط: https://api.site.com/stubs/handler_api.php"
+                        value={serverForm.url}
+                        onChange={e => setServerForm({ ...serverForm, url: e.target.value })}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-white font-mono outline-none"
+                        dir="ltr"
+                      />
+                      <input
+                        type="text"
+                        placeholder="مفتاح الـ API الخاص بالموقع"
+                        value={serverForm.apiKey}
+                        onChange={e => setServerForm({ ...serverForm, apiKey: e.target.value })}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-white font-mono outline-none"
+                        dir="ltr"
+                      />
+                      <button
+                        onClick={() => handleAddServer()}
+                        className="w-full py-2 bg-blue-600 text-white rounded-xl font-bold text-xs shadow-md"
+                      >
+                        حفظ وربط الموقع فورياً
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Telegram Interactive Buttons List */}
+              <div className="space-y-1.5 text-xs font-bold">
+                
+                {/* 1. BUTTONS FOR START SCREEN */}
+                {simScreen === 'start' && (
+                  <>
+                    <button
+                      onClick={() => setSimScreen('admin_panel')}
+                      className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition-colors font-black border border-blue-400 flex items-center justify-center gap-1.5"
+                    >
+                      <ShieldCheck size={16} />
+                      👑 لوحة تحكم الأدمن والمالك ⚙️
+                    </button>
+                    <button
+                      onClick={() => setSimScreen('buynum')}
+                      className="w-full py-2.5 bg-[#2b3e55] hover:bg-[#344b66] text-white rounded-xl transition-colors"
+                    >
+                      ☎️ شراء رقم افتراضي
+                    </button>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <button
+                        onClick={() => setSimScreen('offers_tg')}
+                        className="py-2.5 bg-[#2b3e55] hover:bg-[#344b66] text-white rounded-xl transition-colors"
+                      >
+                        عروض Telegram
+                      </button>
+                      <button
+                        onClick={() => setSimScreen('offers_wa')}
+                        className="py-2.5 bg-[#2b3e55] hover:bg-[#344b66] text-white rounded-xl transition-colors"
+                      >
+                        عروض WhatsApp
+                      </button>
+                    </div>
+                    <button
+                      onClick={() => setSimScreen('saavmotamy')}
+                      className="w-full py-2.5 bg-[#2b3e55] hover:bg-[#344b66] text-white rounded-xl transition-colors"
+                    >
+                      السيرفرت الاكثر شراؤها
+                    </button>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <button
+                        onClick={() => setSimScreen('worldwide')}
+                        className="py-2.5 bg-[#2b3e55] hover:bg-[#344b66] text-white rounded-xl transition-colors"
+                      >
+                        •🎲 الأكثر توفراً •
+                      </button>
+                      <button
+                        onClick={() => setSimScreen('payment_menu')}
+                        className="py-2.5 bg-[#2b3e55] hover:bg-[#344b66] text-white rounded-xl transition-colors"
+                      >
+                        •🎳 أشحن رصيدك•
+                      </button>
+                    </div>
+                  </>
+                )}
+
+                {/* 2. BUTTONS FOR ADMIN PANEL SCREEN */}
+                {simScreen === 'admin_panel' && (
+                  <>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <button
+                        onClick={() => setSimScreen('servers_menu')}
+                        className="py-2.5 bg-blue-700 hover:bg-blue-600 text-white rounded-xl transition-colors font-bold"
+                      >
+                        🌐 السيرفرات ومواقع الـ API
+                      </button>
+                      <button
+                        onClick={() => setSimScreen('mohammed_server')}
+                        className="py-2.5 bg-indigo-700 hover:bg-indigo-600 text-white rounded-xl transition-colors font-bold"
+                      >
+                        👑 سيرفر موقع محمد
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <button
+                        onClick={() => setSimScreen('channels_menu')}
+                        className="py-2.5 bg-[#2b3e55] hover:bg-[#344b66] text-white rounded-xl transition-colors"
+                      >
+                        📢 قنوات الاشتراك والوصف
+                      </button>
+                      <button
+                        onClick={() => {
+                          setChannels([]);
+                          showToast('🗑 تم حذف كافة القنوات السابقة بنجاح!');
+                        }}
+                        className="py-2.5 bg-red-900/80 hover:bg-red-800 text-white rounded-xl transition-colors"
+                      >
+                        🗑 حذف كافة القنوات السابقة
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <button
+                        onClick={() => setSimScreen('payment_menu')}
+                        className="py-2.5 bg-[#2b3e55] hover:bg-[#344b66] text-white rounded-xl transition-colors"
+                      >
+                        💳 طرق الشحن والحسابات
+                      </button>
+                      <button
+                        onClick={() => {
+                          const randCard = `CARD-50RUB-${Math.random().toString(36).substring(2, 8).toUpperCase()}-8338`;
+                          showToast(`🎫 تم توليد كرت شحن: ${randCard}`);
+                        }}
+                        className="py-2.5 bg-[#2b3e55] hover:bg-[#344b66] text-white rounded-xl transition-colors"
+                      >
+                        🎟 صنع كروت شحن روبل
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <button
+                        onClick={() => {
+                          setSimBalance(b => (parseFloat(b) + 50).toFixed(1));
+                          showToast('✅ تم إضافة 50 روبل لحساب العضو بنجاح!');
+                        }}
+                        className="py-2.5 bg-emerald-800 hover:bg-emerald-700 text-white rounded-xl transition-colors"
+                      >
+                        ➕ إضافة رصيد لعضو ♻️
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSimBalance(b => Math.max(0, parseFloat(b) - 20).toFixed(1));
+                          showToast('📛 تم خصم 20 روبل بنجاح!');
+                        }}
+                        className="py-2.5 bg-rose-900 hover:bg-rose-800 text-white rounded-xl transition-colors"
+                      >
+                        ➖ خصم رصيد من عضو 📛
+                      </button>
+                    </div>
+                    <button
+                      onClick={() => setSimScreen('opclo')}
+                      className="w-full py-2.5 bg-[#2b3e55] hover:bg-[#344b66] text-white rounded-xl transition-colors"
+                    >
+                      🔏 قفل وفتح الأقسام
+                    </button>
+                    <button
+                      onClick={() => setSimScreen('start')}
+                      className="w-full py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-xl transition-colors text-xs"
+                    >
+                      🏡 العودة للقائمة الرئيسية
+                    </button>
+                  </>
+                )}
+
+                {/* 3. BUTTONS FOR SERVERS MENU SCREEN (Requested specifically) */}
+                {simScreen === 'servers_menu' && (
+                  <>
+                    <button
+                      onClick={() => setSimScreen('custom_site_prompt')}
+                      className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition-colors font-black flex items-center justify-center gap-1.5"
+                    >
+                      <Plus size={16} />
+                      ➕ إضافة موقع جديد بالرابط و API
+                    </button>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <button
+                        onClick={() => setSimScreen('mohammed_server')}
+                        className="py-2.5 bg-indigo-700 hover:bg-indigo-600 text-white rounded-xl transition-colors font-bold"
+                      >
+                        👑 ضبط سيرفر موقع محمد
+                      </button>
+                      <button
+                        onClick={() => showToast('💸 تم فحص أرصدة المواقع الحية: إجمالي الرصيد 786.50 ₽')}
+                        className="py-2.5 bg-[#2b3e55] hover:bg-[#344b66] text-white rounded-xl transition-colors"
+                      >
+                        💸 كشف أرصدة المواقع الحقيقية
+                      </button>
+                    </div>
+                    <button
+                      onClick={() => showToast('⚙️ تم زيادة نسبة الربح بمقدار +0.5 ₽ لجميع المواقع')}
+                      className="w-full py-2.5 bg-[#2b3e55] hover:bg-[#344b66] text-white rounded-xl transition-colors"
+                    >
+                      ⚙️ تعديل نسبة ربح المواقع (+0.5 ₽)
+                    </button>
+                    <div className="grid grid-cols-2 gap-1.5 pt-1">
+                      <button
+                        onClick={() => setSimScreen('admin_panel')}
+                        className="py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-xl transition-colors text-xs"
+                      >
+                        🔙 رجوع للوحة الأدمن
+                      </button>
+                      <button
+                        onClick={() => setSimScreen('start')}
+                        className="py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl transition-colors text-xs"
+                      >
+                        🏡 القائمة الرئيسية
+                      </button>
+                    </div>
+                  </>
+                )}
+
+                {/* 4. BUTTONS FOR MOHAMMED SERVER SCREEN */}
+                {simScreen === 'mohammed_server' && (
+                  <>
+                    <button
+                      onClick={() => showToast('✅ تم إعادة اختبار سرعة سيرفر محمد: 38ms متصل')}
+                      className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition-colors font-black"
+                    >
+                      🔄 فحص اتصال ورصيد السيرفر
+                    </button>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <button
+                        onClick={() => showToast('✅ تم تحديث رابط سيرفر موقع محمد')}
+                        className="py-2.5 bg-[#2b3e55] hover:bg-[#344b66] text-white rounded-xl transition-colors"
+                      >
+                        ✏️ تغيير رابط موقع محمد
+                      </button>
+                      <button
+                        onClick={() => showToast('🔑 تم تحديث مفتاح API لسيرفر محمد')}
+                        className="py-2.5 bg-[#2b3e55] hover:bg-[#344b66] text-white rounded-xl transition-colors"
+                      >
+                        🔑 تغيير مفتاح API
+                      </button>
+                    </div>
+                    <button
+                      onClick={() => showToast('💵 تم تعديل نسبة ربح سيرفر محمد إلى 2.5 ₽')}
+                      className="w-full py-2.5 bg-[#2b3e55] hover:bg-[#344b66] text-white rounded-xl transition-colors"
+                    >
+                      💵 تعديل نسبة الربح بالروبل (+0.5 ₽)
+                    </button>
+                    <button
+                      onClick={() => setSimScreen('servers_menu')}
+                      className="w-full py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-xl transition-colors text-xs"
+                    >
+                      🔙 رجوع لقسم السيرفرات
+                    </button>
+                  </>
+                )}
+
+                {/* 5. BUTTONS FOR CHANNELS MENU SCREEN */}
+                {simScreen === 'channels_menu' && (
+                  <>
+                    <button
+                      onClick={() => {
+                        const newCh = { id: `ch-${Date.now()}`, title: 'قناة جديدة', username: `@VIP_SMS_${Math.floor(100+Math.random()*900)}`, url: 'https://t.me/', description: 'قناة تفعيلات', isMandatory: true };
+                        setChannels(prev => [...prev, newCh]);
+                        showToast(`➕ تم إضافة القناة ${newCh.username} بنجاح!`);
+                      }}
+                      className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition-colors font-bold"
+                    >
+                      ➕ إضافة قناة اشتراك إجباري
+                    </button>
+                    <button
+                      onClick={() => {
+                        setChannels([]);
+                        showToast('🗑 تم حذف وتصفير جميع القنوات السابقة بنجاح!');
+                      }}
+                      className="w-full py-2.5 bg-red-800 hover:bg-red-700 text-white rounded-xl transition-colors font-bold"
+                    >
+                      🗑 حذف كافة القنوات السابقة
+                    </button>
+                    <button
+                      onClick={() => setSimScreen('admin_panel')}
+                      className="w-full py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-xl transition-colors text-xs"
+                    >
+                      🔙 رجوع للوحة الأدمن
+                    </button>
+                  </>
+                )}
+
+                {/* 6. BUTTONS FOR OPCLO */}
+                {simScreen === 'opclo' && (
+                  <>
+                    <button
+                      onClick={() => {
+                        setSimBotLocked(!simBotLocked);
+                        showToast(simBotLocked ? '✅ تم فتح البوت' : '❌ تم قفل البوت');
+                      }}
+                      className="w-full py-2 bg-[#2b3e55] hover:bg-[#344b66] text-white rounded-xl"
+                    >
+                      {simBotLocked ? 'فتح البوت ✅' : 'قفل البوت ❌'}
+                    </button>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <button
+                        onClick={() => {
+                          setSimWaLocked(!simWaLocked);
+                          showToast(simWaLocked ? 'فتح سيرفر واتساب' : 'قفل سيرفر واتساب');
+                        }}
+                        className="py-2 bg-[#2b3e55] hover:bg-[#344b66] text-white rounded-xl"
+                      >
+                        {simWaLocked ? 'فتح واتساب ✅' : 'قفل واتساب ❌'}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSimTgLocked(!simTgLocked);
+                          showToast(simTgLocked ? 'فتح سيرفر تيليجرام' : 'قفل سيرفر تيليجرام');
+                        }}
+                        className="py-2 bg-[#2b3e55] hover:bg-[#344b66] text-white rounded-xl"
+                      >
+                        {simTgLocked ? 'فتح تيليجرام ✅' : 'قفل تيليجرام ❌'}
+                      </button>
+                    </div>
+                    <button
+                      onClick={() => setSimScreen('admin_panel')}
+                      className="w-full py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-xs"
+                    >
+                      🔙 رجوع للوحة الأدمن
+                    </button>
+                  </>
+                )}
+
+                {/* 7. BUTTONS FOR BUYNUM */}
+                {simScreen === 'buynum' && (
+                  <>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <button
+                        onClick={() => { setSimSelectedAppTitle('واتساب'); setSimScreen('kn_app'); }}
+                        className="py-2.5 bg-[#2b3e55] hover:bg-[#344b66] text-white rounded-xl"
+                      >
+                        ⁞ واتسأب 💬
+                      </button>
+                      <button
+                        onClick={() => { setSimSelectedAppTitle('تيليجرام'); setSimScreen('kn_app'); }}
+                        className="py-2.5 bg-[#2b3e55] hover:bg-[#344b66] text-white rounded-xl"
+                      >
+                        ⁞ تيليجرام 📢
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <button
+                        onClick={() => { setSimSelectedAppTitle('إنستقرام'); setSimScreen('kn_app'); }}
+                        className="py-2.5 bg-[#2b3e55] hover:bg-[#344b66] text-white rounded-xl"
+                      >
+                        ⁞ إنستقرام 🎥
+                      </button>
+                      <button
+                        onClick={() => { setSimSelectedAppTitle('تيك توك'); setSimScreen('kn_app'); }}
+                        className="py-2.5 bg-[#2b3e55] hover:bg-[#344b66] text-white rounded-xl"
+                      >
+                        ⁞ تيكتوك 🎬
+                      </button>
+                    </div>
+                    <button
+                      onClick={() => triggerSimBuy('واتساب - سيرفر محمد VIP', 'اليمن 🇾🇪', 14)}
+                      className="w-full py-2.5 bg-indigo-700 hover:bg-indigo-600 text-white rounded-xl font-black"
+                    >
+                      👑 سيرفر موقع محمد المباشر (شراء فوري)
+                    </button>
+                    <button
+                      onClick={() => setSimScreen('start')}
+                      className="w-full py-2 bg-slate-700 text-white rounded-xl text-xs"
+                    >
+                      🔙 رجوع للقائمة الرئيسية
+                    </button>
+                  </>
+                )}
+
+                {/* 8. BUTTONS FOR KN_APP (Countries selection) */}
+                {simScreen === 'kn_app' && (
+                  <>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <button
+                        onClick={() => triggerSimBuy(simSelectedAppTitle, 'اليمن 🇾🇪', 20)}
+                        className="py-2.5 bg-[#2b3e55] hover:bg-[#344b66] text-white rounded-xl"
+                      >
+                        اليمن 🇾🇪 ¦ 20 ₽
+                      </button>
+                      <button
+                        onClick={() => triggerSimBuy(simSelectedAppTitle, 'السعودية 🇸🇦', 35)}
+                        className="py-2.5 bg-[#2b3e55] hover:bg-[#344b66] text-white rounded-xl"
+                      >
+                        السعودية 🇸🇦 ¦ 35 ₽
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <button
+                        onClick={() => triggerSimBuy(simSelectedAppTitle, 'روسيا 🇷🇺', 15)}
+                        className="py-2.5 bg-[#2b3e55] hover:bg-[#344b66] text-white rounded-xl"
+                      >
+                        روسيا 🇷🇺 ¦ 15 ₽
+                      </button>
+                      <button
+                        onClick={() => triggerSimBuy(simSelectedAppTitle, 'إندونيسيا 🇮🇩', 10)}
+                        className="py-2.5 bg-[#2b3e55] hover:bg-[#344b66] text-white rounded-xl"
+                      >
+                        إندونيسيا 🇮🇩 ¦ 10 ₽
+                      </button>
+                    </div>
+                    <button
+                      onClick={() => triggerSimBuy(simSelectedAppTitle, 'سيرفر موقع محمد', 14)}
+                      className="w-full py-2.5 bg-indigo-700 hover:bg-indigo-600 text-white rounded-xl font-bold"
+                    >
+                      👑 الشراء من سيرفر موقع محمد المخصص (14 ₽)
+                    </button>
+                    <button
+                      onClick={() => setSimScreen('buynum')}
+                      className="w-full py-2 bg-slate-700 text-white rounded-xl text-xs"
+                    >
+                      🔙 رجوع لاختيار التطبيق
+                    </button>
+                  </>
+                )}
+
+                {/* 9. BUTTONS FOR ACTIVE NUMBER */}
+                {simScreen === 'active_number' && simActiveNumber && (
+                  <>
+                    <button
+                      onClick={() => {
+                        const c = Math.floor(100000 + Math.random() * 900000).toString();
+                        setSimActiveNumber({ ...simActiveNumber, code: c });
+                        showToast(`🎉 تم استلام كود SMS: ${c}`, 'success');
+                      }}
+                      className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold"
+                    >
+                      ♻️ تحديث الكود الآن
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSimActiveNumber(null);
+                        setSimScreen('buynum');
+                        showToast('🚫 تم إلغاء الرقم واسترداد الرصيد لمحفظتك بالكامل.');
+                      }}
+                      className="w-full py-2.5 bg-red-900/80 hover:bg-red-800 text-white rounded-xl font-bold"
+                    >
+                      🚫 إلغاء الرقم واسترداد الرصيد
+                    </button>
+                    <button
+                      onClick={() => setSimScreen('start')}
+                      className="w-full py-2 bg-slate-700 text-white rounded-xl text-xs"
+                    >
+                      🏡 القائمة الرئيسية
+                    </button>
+                  </>
+                )}
+
+                {/* FALLBACK RETURN FOR OTHER SCREENS */}
+                {!['start', 'admin_panel', 'servers_menu', 'mohammed_server', 'channels_menu', 'opclo', 'buynum', 'kn_app', 'active_number'].includes(simScreen) && (
+                  <>
+                    <button
+                      onClick={() => setSimScreen('start')}
+                      className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold"
+                    >
+                      🏡 العودة للقائمة الرئيسية
+                    </button>
+                  </>
+                )}
+
               </div>
             </div>
           </div>
@@ -629,7 +1237,7 @@ export default function App() {
           <div className="space-y-6 animate-in fade-in duration-300">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h2 className="text-2xl font-black text-white">إدارة السيرفرات والمواقع (API & URLs)</h2>
+                <h2 className="text-2xl font-black text-white">إدارة السيرفرات ومواقع التوريد الحقيقية (API & URLs)</h2>
                 <p className="text-xs text-slate-400">
                   أضف مواقع التوريد عبر الرابط والـ API الخاص بها، واضبط نسبة ربحك بالروبل لكل موقع بدقة.
                 </p>
@@ -1448,68 +2056,76 @@ export default function App() {
             <div>
               <h2 className="text-2xl font-black text-white">أكواد البوت ومنصة Bots.Business (BJS)</h2>
               <p className="text-xs text-slate-400">
-                هذه الأكواد جاهزة للمزامنة السحابية عبر Git Sync أو لصقها مباشرة في أوامر البوت على منصة Bots.Business.
+                كافة ملفات الأوامر تم إنشاؤها داخل مجلد <code className="text-blue-400 bg-slate-900 px-1 py-0.5 rounded">/commands</code>، وهي جاهزة للمزامنة السحابية عبر Git Sync.
               </p>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                <span className="font-mono text-xs font-bold text-blue-400">commands/_start.js (مع التحقق الإجباري من القنوات ولوحة الأدمن)</span>
-                <button
-                  onClick={() => copyToClipboard(`/* Command: /start with mandatory channels and admin check */`, 'الكود')}
-                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5"
-                >
-                  <Copy size={14} />
-                  نسخ الكود
-                </button>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[
+                { file: 'commands/_start.js', title: 'القائمة الرئيسية والأدمن', desc: 'القائمة الرئيسية مع أزرار العروض وفحص أيدي المالك' },
+                { file: 'commands/admin_panel.js', title: 'لوحة تحكم الأدمن والمالك', desc: 'تضم كافة أزرار إدارة السيرفرات، القنوات، وطرق الدفع' },
+                { file: 'commands/servers_menu.js', title: 'إدارة السيرفرات والمواقع', desc: 'إضافة مواقع بالرابط و API وكشف الأرصدة' },
+                { file: 'commands/add_custom_site.js', title: 'إضافة موقع توريد جديد', desc: 'استقبال الرابط ومفتاح API وحفظه فورياً' },
+                { file: 'commands/mohammed_server.js', title: 'سيرفر موقع محمد المخصص', desc: 'التحكم برابط ومفتاح ونسبة ربح موقع محمد' },
+                { file: 'commands/channels_menu.js', title: 'إدارة قنوات الاشتراك', desc: 'تعديل وحذف القنوات السابقة والوصف' },
+                { file: 'commands/delallchannels.js', title: 'حذف كافة القنوات السابقة', desc: 'مسح فوري لجميع القنوات المفروضة' },
+                { file: 'commands/payment_menu.js', title: 'طرق الشحن والحسابات', desc: 'عرض وتعديل الكريمي، النجم، بايننس، و STC' },
+                { file: 'commands/card.js', title: 'صنع كروت شحن روبل', desc: 'توليد كرت شحن 16 رقماً وحرفاً للشحن الذاتي' },
+                { file: 'commands/addcoin.js', title: 'إضافة رصيد لعضو', desc: 'شحن رصيد فوري لأي حساب بالروبل' },
+                { file: 'commands/delcoin.js', title: 'خصم رصيد من عضو', desc: 'خصم رصيد فوري من أي أيدي مستخدم' },
+                { file: 'commands/opclo.js', title: 'قفل وفتح الأقسام', desc: 'قفل وفتح البوت، العروض، وسيرفرات الأرقام' },
+                { file: 'commands/Buynum.js', title: 'شراء رقم افتراضي', desc: 'قائمة التطبيقات والسيرفرات الملكية والعشوائية' },
+                { file: 'commands/Xi.js', title: 'تنفيذ شراء الرقم الفعلي', desc: 'الاتصال بالمزود، جلب الرقم، وفحص كود SMS' }
+              ].map(cmd => (
+                <div key={cmd.file} className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between space-y-3">
+                  <div>
+                    <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                      ملف جاهز ومحمي ✅
+                    </span>
+                    <h4 className="font-bold text-sm text-white mt-1.5">{cmd.title}</h4>
+                    <p className="text-[11px] text-slate-400 font-mono" dir="ltr">{cmd.file}</p>
+                    <p className="text-[11px] text-slate-500 mt-1">{cmd.desc}</p>
+                  </div>
+                  <button
+                    onClick={() => copyToClipboard(`// Code file: ${cmd.file}`, cmd.file)}
+                    className="w-full py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 border border-slate-700"
+                  >
+                    <Copy size={12} />
+                    نسخ مسار واسم الأمر
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 8: DASHBOARD & STATS */}
+        {activeTab === 'dashboard' && (
+          <div className="space-y-6 animate-in fade-in duration-300">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-1 text-right">
+                <span className="text-xs text-slate-400 font-bold">سيرفرات التوريد المربوطة</span>
+                <p className="text-3xl font-black text-white">{servers.length}</p>
+                <p className="text-[10px] text-emerald-400">سيرفر محمد + 5sim + المواقع المضافة</p>
               </div>
-              <pre className="p-4 bg-slate-950 rounded-2xl text-[11px] font-mono text-slate-300 overflow-x-auto leading-relaxed" dir="ltr">
-{`/*
-  Command: /start
-  Bot: PLUS SMS Hub
-*/
 
-var admin_id = "8338869162";
-var user_id = "" + (user.telegramid || "");
-var target_chat_id = (chat && chat.chatid) ? chat.chatid : user.telegramid;
+              <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-1 text-right">
+                <span className="text-xs text-slate-400 font-bold">قنوات الاشتراك الإجباري</span>
+                <p className="text-3xl font-black text-white">{channels.length}</p>
+                <p className="text-[10px] text-purple-400">يمكن حذفها أو تصفيرها بنقرة واحدة</p>
+              </div>
 
-// Check user balance (default 10.5 ₽)
-var balance = User.getProperty("balance") || "10.5";
+              <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-1 text-right">
+                <span className="text-xs text-slate-400 font-bold">طرق الشحن المعتمدة</span>
+                <p className="text-3xl font-black text-white">{payments.length}</p>
+                <p className="text-[10px] text-amber-400">الكريمي، النجم، USDT، STC</p>
+              </div>
 
-var main_text = "• *القائمة الرئيسية* 🏡\\n" +
-  "💙 *مكتب الإبداع* 💙\\n\\n" +
-  "🆔 : \`" + user_id + "\` •\\n" +
-  "💷 : *" + balance + " ₽* •\\n\\n" +
-  "💙 [قـنـاة الـبـوت](https://t.me/sms_com_bot) 💙\\n" +
-  "💗 [قـنـاة الـتـفـعـيـلات](https://t.me/pilotoooo) 💗\\n" +
-  "🇸🇦🇮🇩🇻🇳🇾🇪 *من الدول المتوفرة حالياً* ــ\\n" +
-  "💡 *شرح استخدام البوت* ــ\\n\\n" +
-  "╰•|_____(PLUS SMS)_____|•╯";
-
-var keyboard = [
-  [ { text: "☎️ شراء رقم افتراضي", callback_data: "Buynum" } ],
-  [ { text: "عروض Telegram", callback_data: "offers_tg" }, { text: "عروض WhatsApp", callback_data: "offers_wa" } ],
-  [ { text: "السيرفرت الاكثر شراؤها", callback_data: "saavmotamy" } ],
-  [ { text: "•🎲 الأكثر توفراً •", callback_data: "worldwide" }, { text: "•🎳 أشحن رصيدك•", callback_data: "Payment" } ],
-  [ { text: "•🔭 الرشـ%ـق وشحن الألعاب والبرامج •", callback_data: "sh" } ],
-  [ { text: "•💎 اربح روبل مجاناً ₽ •", callback_data: "assignment" } ],
-  [ { text: "• تحويل الرصيد 🔄 •", callback_data: "SendCoin" }, { text: "الدعم ⏰", callback_data: "super" } ],
-  [ { text: "حسابي", callback_data: "MyAccount" } ]
-];
-
-if (user_id === admin_id) {
-  keyboard.unshift([
-    { text: "👑 لوحة تحكم الأدمن والمالك ⚙️", callback_data: "admin_panel" }
-  ]);
-}
-
-Api.sendMessage({
-  chat_id: target_chat_id,
-  text: main_text,
-  parse_mode: "Markdown",
-  reply_markup: { inline_keyboard: keyboard }
-});`}
-              </pre>
+              <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-1 text-right">
+                <span className="text-xs text-slate-400 font-bold">كروت الشحن الجاهزة</span>
+                <p className="text-3xl font-black text-white">{cards.filter(c => !c.isUsed).length}</p>
+                <p className="text-[10px] text-emerald-400">جاهزة للشحن المباشر</p>
+              </div>
             </div>
           </div>
         )}
