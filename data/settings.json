@@ -1,0 +1,18 @@
+{
+  "botName": "PLUS SMS Hub Bot",
+  "botToken": "8784070781:AAEwYjXS43ZG_vdm-PTnM9eUxSnJafnhkfo",
+  "adminId": "8338869162",
+  "adminUsername": "Engku8",
+  "providerName": "سيرفر مصطفى (5SIM.NET)",
+  "simEmail": "mstfy737216610@gmail.com",
+  "simUserId": 4437001,
+  "simToken": "eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4MTkxMzcxMTQsImlhdCI6MTc4NzYwMTExNCwicmF5IjoiNTZlYmFlNjg0NGQyMTAzZjAyZjUyMzJlYjVhODViNTEiLCJzdWIiOjQ0MzcwMDF9.qEpXfNoatnjn3MLJhQErUVmgfIJ-cP_laTBFdz8RkeMietQrjYqZnRHTd23NjPxVPwn0HpoAz4lAmOwTiuPjaUQkU2u9QCnh2i89MAedpfm2kosspiug1Ux6o7pJ-2fVqPGW27cQtGmOz-vZne997NCbdCc7eDxoX3ZknvorIu1ZmaCEnVlk2-t-YdHAi90GzVqjrvE0dZqZM4Mp-IgX8z71Bv1neikePV2RsE68hGMM8Z2bONHMeAqxhtezVcW0ykW1pCk_NLjcSnTWFXo_L_dgVvZLQnPB1n-ROqFan55gB-uEkuU0KN0gkvnozT9_N4wTWjAYiLTy1S3-vaooDA",
+  "simBaseUrl": "https://5sim.net/v1",
+  "simLiveBalance": 3.4971,
+  "simRating": 96,
+  "profitMarginRub": 2.0,
+  "exchangeRateUsdToRub": 92.5,
+  "referralRewardRub": 0.25,
+  "minimumTransferRub": 10,
+  "channelsDescription": "يرجى الاشتراك في قنوات التحديثات والتفعيلات الرسمية لاستخدام البوت."
+}

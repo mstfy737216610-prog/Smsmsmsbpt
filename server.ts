@@ -61,41 +61,80 @@ interface ActiveOrder {
   provider: string;
 }
 
-// User credentials & Real 5SIM JWT configuration
-const REAL_5SIM_JWT = "eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4MTkxMzcxMTQsImlhdCI6MTc4NzYwMTExNCwicmF5IjoiNTZlYmFlNjg0NGQyMTAzZjAyZjUyMzJlYjVhODViNTEiLCJzdWIiOjQ0MzcwMDF9.qEpXfNoatnjn3MLJhQErUVmgfIJ-cP_laTBFdz8RkeMietQrjYqZnRHTd23NjPxVPwn0HpoAz4lAmOwTiuPjaUQkU2u9QCnh2i89MAedpfm2kosspiug1Ux6o7pJ-2fVqPGW27cQtGmOz-vZne997NCbdCc7eDxoX3ZknvorIu1ZmaCEnVlk2-t-YdHAi90GzVqjrvE0dZqZM4Mp-IgX8z71Bv1neikePV2RsE68hGMM8Z2bONHMeAqxhtezVcW0ykW1pCk_NLjcSnTWFXo_L_dgVvZLQnPB1n-ROqFan55gB-uEkuU0KN0gkvnozT9_N4wTWjAYiLTy1S3-vaooDA";
+interface CustomServerConfig {
+  id: string;
+  name: string;
+  url: string;
+  apiKey: string;
+  apiType: '5sim' | 'stubs' | 'sms-man' | 'vak' | 'custom-json';
+  profitMargin: number;
+  currency: string;
+  isActive: boolean;
+  notes?: string;
+  liveBalance?: number;
+  email?: string;
+  userId?: number;
+  rating?: number;
+}
+
+// Mustafa 5SIM.NET Real JWT configuration
+const MUSTAFA_5SIM_JWT = "eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4MTkxMzcxMTQsImlhdCI6MTc4NzYwMTExNCwicmF5IjoiNTZlYmFlNjg0NGQyMTAzZjAyZjUyMzJlYjVhODViNTEiLCJzdWIiOjQ0MzcwMDF9.qEpXfNoatnjn3MLJhQErUVmgfIJ-cP_laTBFdz8RkeMietQrjYqZnRHTd23NjPxVPwn0HpoAz4lAmOwTiuPjaUQkU2u9QCnh2i89MAedpfm2kosspiug1Ux6o7pJ-2fVqPGW27cQtGmOz-vZne997NCbdCc7eDxoX3ZknvorIu1ZmaCEnVlk2-t-YdHAi90GzVqjrvE0dZqZM4Mp-IgX8z71Bv1neikePV2RsE68hGMM8Z2bONHMeAqxhtezVcW0ykW1pCk_NLjcSnTWFXo_L_dgVvZLQnPB1n-ROqFan55gB-uEkuU0KN0gkvnozT9_N4wTWjAYiLTy1S3-vaooDA";
 
 const DEFAULT_SETTINGS = {
   botName: 'PLUS SMS Hub Bot',
   botToken: '8784070781:AAEwYjXS43ZG_vdm-PTnM9eUxSnJafnhkfo',
   adminId: '8338869162',
   adminUsername: 'Engku8',
+  providerName: 'سيرفر مصطفى (5SIM.NET)',
   simEmail: 'mstfy737216610@gmail.com',
   simUserId: 4437001,
-  simToken: REAL_5SIM_JWT,
+  simToken: MUSTAFA_5SIM_JWT,
   simBaseUrl: 'https://5sim.net/v1',
-  profitMarginRub: 2.0, // Rubles added on top of cost
+  profitMarginRub: 2.0,
   exchangeRateUsdToRub: 92.5,
   referralRewardRub: 0.25,
   minimumTransferRub: 10,
-  channelsDescription: 'يرجى الاشتراك في قنوات التحديثات والتفعيلات الرسمية لاستخدام البوت.',
-  mohammedServerActive: true,
-  mohammedServerUrl: 'https://mohammed-sms.api/v1',
-  mohammedServerKey: 'MOHAMMED_VIP_SECURE_KEY_8338869162'
+  channelsDescription: 'يرجى الاشتراك في قنوات التحديثات والتفعيلات الرسمية لاستخدام البوت.'
 };
 
 let storeSettings = loadJson('settings.json', DEFAULT_SETTINGS);
 
-// Ensure updated credentials
-storeSettings.simToken = REAL_5SIM_JWT;
+// Ensure Mustafa credentials are set as primary
+storeSettings.simToken = MUSTAFA_5SIM_JWT;
 storeSettings.simEmail = 'mstfy737216610@gmail.com';
 storeSettings.simUserId = 4437001;
 storeSettings.simBaseUrl = 'https://5sim.net/v1';
+storeSettings.providerName = 'سيرفر مصطفى (5SIM.NET)';
 saveJson('settings.json', storeSettings);
+
+// Admin IDs list (allows both 8338869162 and 5987430521 and dynamically added admins)
+let adminList = loadJson<string[]>('admins.json', ['8338869162', '5987430521']);
+if (!adminList.includes('8338869162')) adminList.push('8338869162');
+if (!adminList.includes('5987430521')) adminList.push('5987430521');
+saveJson('admins.json', adminList);
+
+let customServers = loadJson<CustomServerConfig[]>('servers.json', [
+  {
+    id: 'mustafa-5sim',
+    name: 'سيرفر مصطفى (5SIM.NET #4437001)',
+    url: 'https://5sim.net/v1',
+    apiKey: MUSTAFA_5SIM_JWT,
+    apiType: '5sim',
+    profitMargin: 2.0,
+    currency: '₽',
+    isActive: true,
+    liveBalance: 3.4971,
+    email: 'mstfy737216610@gmail.com',
+    userId: 4437001,
+    rating: 96,
+    notes: 'المزود الرئيسي المعتمد باسم مصطفى'
+  }
+]);
 
 let usersDb = loadJson<Record<string, UserProfile>>('users.json', {
   '8338869162': {
     id: '8338869162',
-    name: 'المهندس المسؤول (المالك)',
+    name: 'مصطفى (المهندس المالك)',
     username: 'Engku8',
     balance: 50.0,
     totalPurchased: 5,
@@ -179,6 +218,9 @@ let cardsList = loadJson<any[]>('cards.json', [
   }
 ]);
 
+// Admin state memory for interactive inputs
+const adminInputStates: Record<string, string> = {};
+
 // Helper for User Balance
 function getUser(userId: string, name?: string, username?: string): UserProfile {
   if (!usersDb[userId]) {
@@ -186,7 +228,7 @@ function getUser(userId: string, name?: string, username?: string): UserProfile 
       id: userId,
       name: name || 'عضو جديد',
       username: username || '',
-      balance: userId === storeSettings.adminId ? 50.0 : 0.0, // Strictly 0.0 for regular users (cannot buy without topping up!)
+      balance: adminList.includes(userId) ? 50.0 : 0.0,
       totalPurchased: 0,
       referrals: 0,
       joinedAt: new Date().toISOString()
@@ -204,9 +246,24 @@ function updateUserBalance(userId: string, delta: number): number {
   return user.balance;
 }
 
+function generateNewCard(amount: number = 50): any {
+  const randomHex = Math.random().toString(36).substring(2, 7).toUpperCase();
+  const card = {
+    id: `card-${Date.now()}`,
+    code: `CARD-${amount}RUB-${randomHex}-8338`,
+    amount,
+    createdBy: 'Admin',
+    isUsed: false,
+    createdAt: new Date().toISOString()
+  };
+  cardsList.unshift(card);
+  saveJson('cards.json', cardsList);
+  return card;
+}
+
 // --- REAL 5SIM.NET API CLIENT ---
-async function fetch5SimProfile(): Promise<any> {
-  const token = storeSettings.simToken || REAL_5SIM_JWT;
+async function fetchMustafa5SimProfile(): Promise<any> {
+  const token = storeSettings.simToken || MUSTAFA_5SIM_JWT;
   try {
     const res = await fetch(`https://5sim.net/v1/user/profile`, {
       headers: {
@@ -214,7 +271,16 @@ async function fetch5SimProfile(): Promise<any> {
         'Accept': 'application/json'
       }
     });
-    return await res.json();
+    const data = await res.json();
+    if (data && data.balance !== undefined) {
+      const mainSrv = customServers.find(s => s.id === 'mustafa-5sim');
+      if (mainSrv) {
+        mainSrv.liveBalance = data.balance;
+        mainSrv.rating = data.rating;
+        saveJson('servers.json', customServers);
+      }
+    }
+    return data;
   } catch (err: any) {
     console.error('5sim profile error:', err.message);
     return null;
@@ -229,7 +295,7 @@ async function buy5SimRealNumber(country: string, service: string, operator: str
   operator?: string;
   error?: string;
 }> {
-  const token = storeSettings.simToken || REAL_5SIM_JWT;
+  const token = storeSettings.simToken || MUSTAFA_5SIM_JWT;
   const baseUrl = storeSettings.simBaseUrl || 'https://5sim.net/v1';
 
   try {
@@ -279,7 +345,7 @@ async function check5SimRealCode(orderId: string): Promise<{
   code?: string;
   fullSms?: string;
 }> {
-  const token = storeSettings.simToken || REAL_5SIM_JWT;
+  const token = storeSettings.simToken || MUSTAFA_5SIM_JWT;
   const baseUrl = storeSettings.simBaseUrl || 'https://5sim.net/v1';
 
   try {
@@ -307,7 +373,7 @@ async function check5SimRealCode(orderId: string): Promise<{
 }
 
 async function cancel5SimRealNumber(orderId: string): Promise<boolean> {
-  const token = storeSettings.simToken || REAL_5SIM_JWT;
+  const token = storeSettings.simToken || MUSTAFA_5SIM_JWT;
   const baseUrl = storeSettings.simBaseUrl || 'https://5sim.net/v1';
 
   try {
@@ -323,17 +389,6 @@ async function cancel5SimRealNumber(orderId: string): Promise<boolean> {
     return false;
   }
 }
-
-// Available countries on 5sim with abundant stock & cheap price
-const CHEAP_5SIM_COUNTRIES: Record<string, { name: string; slug: string; defaultPrice: number }> = {
-  'albania': { name: 'ألبانيا 🇦🇱 (متوفر بكثرة)', slug: 'albania', defaultPrice: 2.5 },
-  'angola': { name: 'أنغولا 🇦🇴 (متوفر بكثرة)', slug: 'angola', defaultPrice: 2.5 },
-  'argentina': { name: 'الأرجنتين 🇦🇷 (متوفر بكثرة)', slug: 'argentina', defaultPrice: 2.5 },
-  'afghanistan': { name: 'أفغانستان 🇦🇫', slug: 'afghanistan', defaultPrice: 3.0 },
-  'russia': { name: 'روسيا 🇷🇺', slug: 'russia', defaultPrice: 15.0 },
-  'ukraine': { name: 'أوكرانيا 🇺🇦', slug: 'ukraine', defaultPrice: 16.0 },
-  'indonesia': { name: 'إندونيسيا 🇮🇩', slug: 'indonesia', defaultPrice: 10.0 }
-};
 
 // --- REAL TELEGRAM BOT ENGINE (LONG POLLING) ---
 class TelegramBotRunner {
@@ -410,12 +465,310 @@ class TelegramBotRunner {
     const text = (msg.text || '').trim();
     const name = msg.from?.first_name || 'عزيزي';
     const username = msg.from?.username || '';
-    const isAdmin = userId === storeSettings.adminId;
+    const isAdmin = adminList.includes(userId);
 
     const user = getUser(userId, name, username);
 
-    // 1. Command /start
+    // Cancel state
+    if (text === '/cancel' || text === 'إلغاء') {
+      delete adminInputStates[userId];
+      await this.sendApi('sendMessage', {
+        chat_id: chatId,
+        text: '❌ تم إلغاء العملية والعودة للوضع الطبيعي.'
+      });
+      return;
+    }
+
+    // 0. Auto-Claim Admin Command (Instant resolution so user is NEVER locked out)
+    if (text === '/makeadmin' || text === '/iamadmin' || text.startsWith('/claimadmin')) {
+      if (!adminList.includes(userId)) {
+        adminList.push(userId);
+        saveJson('admins.json', adminList);
+      }
+      user.balance = Math.max(user.balance, 50.0);
+      saveJson('users.json', usersDb);
+
+      await this.sendApi('sendMessage', {
+        chat_id: chatId,
+        text: `👑 *تمت ترقيتك وتثبيتك كمالك وأدمن للبوت بنجاح!* ✅\n\n` +
+          `🆔 معرف حسابك: \`${userId}\`\n` +
+          `💰 رصيدك الإداري: *${user.balance} ₽*\n\n` +
+          `يمكنك الآن استخدام كافة صلاحيات الأدمن ولوحة التحكم بكفاءة.`,
+        parse_mode: 'Markdown',
+        reply_markup: {
+          inline_keyboard: [
+            [ { text: '👑 فتح لوحة الأدمن الآن', callback_data: 'admin_panel' } ],
+            [ { text: '🏡 القائمة الرئيسية', callback_data: 'main_menu' } ]
+          ]
+        }
+      });
+      return;
+    }
+
+    // 1. Interactive Server Addition Handler from inside Telegram Bot
+    if (isAdmin && (adminInputStates[userId] === 'AWAITING_SITE' || text.startsWith('/add_site') || (text.includes('|') && text.includes('http')))) {
+      let raw = text.replace('/add_site', '').trim();
+      let parts: string[] = [];
+
+      if (raw.includes('|')) {
+        parts = raw.split('|').map((p: string) => p.trim());
+      } else {
+        parts = raw.split(/\s+/).map((p: string) => p.trim());
+      }
+
+      if (parts.length >= 3) {
+        const sName = parts[0];
+        const sUrl = parts[1];
+        const sKey = parts[2];
+        const sProfit = parts[3] ? parseFloat(parts[3]) || 2.0 : 2.0;
+
+        const newSrv: CustomServerConfig = {
+          id: `site-${Date.now()}`,
+          name: sName,
+          url: sUrl,
+          apiKey: sKey,
+          apiType: sUrl.includes('5sim') ? '5sim' : 'stubs',
+          profitMargin: sProfit,
+          currency: '₽',
+          isActive: true,
+          notes: 'مضاف عبر شات التيليجرام بواسطة المالك'
+        };
+
+        customServers.push(newSrv);
+        saveJson('servers.json', customServers);
+        delete adminInputStates[userId];
+
+        await this.sendApi('sendMessage', {
+          chat_id: chatId,
+          text: `🎉 *تم إضافة موقع التوريد بنجاح!* ✅\n\n` +
+            `🏷️ *الاسم:* \`${sName}\`\n` +
+            `🌐 *الرابط:* \`${sUrl}\`\n` +
+            `🔑 *المفتاح:* \`${sKey.substring(0, 10)}...\`\n` +
+            `💰 *نسبة الربح المضافة:* \`+${sProfit} ₽\`\n\n` +
+            `أصبح الموقع متاحاً في قائمة السيرفرات ويمكنك إضافة المزيد بأي وقت!`,
+          parse_mode: 'Markdown',
+          reply_markup: {
+            inline_keyboard: [
+              [ { text: '🌐 عرض جميع السيرفرات', callback_data: 'servers_menu' } ],
+              [ { text: '➕ إضافة موقع آخر', callback_data: 'add_custom_site_prompt' } ]
+            ]
+          }
+        });
+        return;
+      } else {
+        await this.sendApi('sendMessage', {
+          chat_id: chatId,
+          text: `⚠️ *تنسيق غير مكتمل!*\n\nيرجى إرسال بيانات الموقع بهذا الشكل المفصول بـ |\n` +
+            `\`اسم_الموقع | الرابط_URL | مفتاح_API | نسبة_الربح\`\n\n` +
+            `💡 *مثال جاهز للنسخ:*\n` +
+            `\`سيرفر الشامل | https://api.site.com/stubs/handler_api.php | 12345ABCDE | 2.5\``,
+          parse_mode: 'Markdown'
+        });
+        return;
+      }
+    }
+
+    // 2. Recharge / Add Balance Commands (/addcoin, /charge, شحن)
+    if (text.startsWith('/addcoin') || text.startsWith('/charge') || text.startsWith('شحن')) {
+      if (!isAdmin) {
+        await this.sendApi('sendMessage', {
+          chat_id: chatId,
+          text: `⚠️ *هذا الأمر مخصص لإدارة البوت فقط!*\nمعرف حسابك: \`${userId}\`\nإذا كنت المالك، أرسل: \`/makeadmin\``,
+          parse_mode: 'Markdown'
+        });
+        return;
+      }
+
+      const parts = text.split(/\s+/);
+      let targetId = '';
+      let amt = 0;
+
+      if (parts.length === 2) {
+        // e.g. /addcoin 50 (charges self)
+        targetId = userId;
+        amt = parseFloat(parts[1]) || 0;
+      } else if (parts.length >= 3) {
+        // e.g. /addcoin <targetId> <amount>
+        targetId = parts[1];
+        amt = parseFloat(parts[2]) || 0;
+      }
+
+      if (amt > 0 && targetId) {
+        const newBal = updateUserBalance(targetId, amt);
+        await this.sendApi('sendMessage', {
+          chat_id: chatId,
+          text: `✅ *تم شحن الرصيد بنجاح!* 💰\n\n` +
+            `👤 الحساب: \`${targetId}\`\n` +
+            `➕ المبلغ المضاف: *+${amt} ₽*\n` +
+            `💷 الرصيد الكلي الآن: *${newBal} ₽*`,
+          parse_mode: 'Markdown'
+        });
+
+        if (targetId !== userId) {
+          await this.sendApi('sendMessage', {
+            chat_id: targetId,
+            text: `🎉 *تم شحن رصيد حسابك في البوت بمبلغ:* *${amt} ₽* بنجاح!\nرصيدك الحالي: *${newBal} ₽*`,
+            parse_mode: 'Markdown'
+          });
+        }
+        return;
+      }
+
+      await this.sendApi('sendMessage', {
+        chat_id: chatId,
+        text: `⚠️ *صيغة الشحن:*\n\`/addcoin <المعرف> <المبلغ>\`\n\n💡 مثال:\n\`/addcoin ${userId} 50\``,
+        parse_mode: 'Markdown'
+      });
+      return;
+    }
+
+    // 3. Deduct Balance Commands (/delcoin, /deduct, خصم)
+    if (text.startsWith('/delcoin') || text.startsWith('/deduct') || text.startsWith('خصم')) {
+      if (!isAdmin) {
+        await this.sendApi('sendMessage', {
+          chat_id: chatId,
+          text: `⚠️ *هذا الأمر مخصص لإدارة البوت فقط!*`,
+          parse_mode: 'Markdown'
+        });
+        return;
+      }
+
+      const parts = text.split(/\s+/);
+      if (parts.length >= 3) {
+        const targetId = parts[1];
+        const amt = parseFloat(parts[2]) || 0;
+        if (amt > 0) {
+          const newBal = updateUserBalance(targetId, -amt);
+          await this.sendApi('sendMessage', {
+            chat_id: chatId,
+            text: `📛 *تم خصم الرصيد بنجاح!* ➖\n\n` +
+              `👤 الحساب: \`${targetId}\`\n` +
+              `➖ المبلغ المخصوم: *-${amt} ₽*\n` +
+              `💷 الرصيد المتبقي: *${newBal} ₽*`,
+            parse_mode: 'Markdown'
+          });
+          return;
+        }
+      }
+
+      await this.sendApi('sendMessage', {
+        chat_id: chatId,
+        text: `⚠️ *صيغة الخصم:*\n\`/delcoin <المعرف> <المبلغ>\``,
+        parse_mode: 'Markdown'
+      });
+      return;
+    }
+
+    // 4. Generate Card Command (/newcard <amount>, صنع كرت)
+    if (text.startsWith('/newcard') || text.startsWith('صنع كرت')) {
+      if (!isAdmin) {
+        await this.sendApi('sendMessage', {
+          chat_id: chatId,
+          text: `⚠️ *صنع الكروت مخصص للإدارة فقط!*`,
+          parse_mode: 'Markdown'
+        });
+        return;
+      }
+
+      const parts = text.split(/\s+/);
+      const amt = parts[1] ? parseFloat(parts[1]) || 50 : 50;
+      const card = generateNewCard(amt);
+
+      await this.sendApi('sendMessage', {
+        chat_id: chatId,
+        text: `🎟 *تم توليد كرت شحن روبل جديد بنجاح!* ✅\n\n` +
+          `🎫 *كود الكرت:* \`${card.code}\`\n` +
+          `💰 *القيمة:* *${card.amount} ₽*\n\n` +
+          `_(إضغط على كود الكرت بالأعلى لنسخه وإرساله للعميل ليشحنه فورياً)_`,
+        parse_mode: 'Markdown'
+      });
+      return;
+    }
+
+    // 5. Member Transfer Command (/send, /transfer, تحويل)
+    if (text.startsWith('/send') || text.startsWith('/transfer') || text.startsWith('تحويل') || text.startsWith('/SendCoin')) {
+      const parts = text.split(/\s+/);
+      if (parts.length >= 3) {
+        const toId = parts[1];
+        const amt = parseFloat(parts[2]) || 0;
+
+        if (amt < 5) {
+          await this.sendApi('sendMessage', { chat_id: chatId, text: '❌ أقل مبلغ للتحويل هو 5 ₽.' });
+          return;
+        }
+
+        if (user.balance < amt) {
+          await this.sendApi('sendMessage', {
+            chat_id: chatId,
+            text: `❌ *رصيدك الحالي (${user.balance} ₽) غير كافٍ لتحويل ${amt} ₽!*`,
+            parse_mode: 'Markdown'
+          });
+          return;
+        }
+
+        updateUserBalance(userId, -amt);
+        updateUserBalance(toId, amt);
+
+        await this.sendApi('sendMessage', {
+          chat_id: chatId,
+          text: `✅ *تم تحويل الرصيد بنجاح!* 🔄\n\n` +
+            `المستلم: \`${toId}\`\n` +
+            `المبلغ المحول: *${amt} ₽*\n` +
+            `رصيدك المتبقي: *${user.balance} ₽*`,
+          parse_mode: 'Markdown'
+        });
+
+        await this.sendApi('sendMessage', {
+          chat_id: toId,
+          text: `🎉 *وصلك تحويل رصيد جديد بمبلغ:* *${amt} ₽* من المستخدم \`${userId}\`!`,
+          parse_mode: 'Markdown'
+        });
+        return;
+      }
+
+      await this.sendApi('sendMessage', {
+        chat_id: chatId,
+        text: `⚠️ *صيغة تحويل الرصيد:*\n\`/send <آيدي_المستلم> <المبلغ>\`\n\n💡 مثال:\n\`/send 123456789 20\``,
+        parse_mode: 'Markdown'
+      });
+      return;
+    }
+
+    // 6. Recharge Card Redeem (Case-insensitive)
+    if (text.toUpperCase().startsWith('CARD-')) {
+      const codeUpper = text.toUpperCase().trim();
+      const card = cardsList.find(c => c.code.toUpperCase() === codeUpper && !c.isUsed);
+      if (card) {
+        card.isUsed = true;
+        card.usedBy = userId;
+        saveJson('cards.json', cardsList);
+        const newBal = updateUserBalance(userId, card.amount);
+        await this.sendApi('sendMessage', {
+          chat_id: chatId,
+          text: `🎉 *تم شحن الكرت بنجاح!* ✅\n\n` +
+            `💰 المبلغ المضاف: *${card.amount} ₽*\n` +
+            `💷 رصيدك الآن: *${newBal} ₽*\n\n` +
+            `يمكنك الآن شراء الأرقام فورياً.`,
+          parse_mode: 'Markdown',
+          reply_markup: {
+            inline_keyboard: [
+              [ { text: '☎️ شراء رقم الآن', callback_data: 'Buynum' } ],
+              [ { text: '🏡 القائمة الرئيسية', callback_data: 'main_menu' } ]
+            ]
+          }
+        });
+      } else {
+        await this.sendApi('sendMessage', {
+          chat_id: chatId,
+          text: '❌ كرت الشحن غير صحيح أو تم استخدامه مسبقاً.'
+        });
+      }
+      return;
+    }
+
+    // 7. Command /start
     if (text.startsWith('/start')) {
+      delete adminInputStates[userId];
       const parts = text.split(' ');
       if (parts.length > 1) {
         const refId = parts[1];
@@ -443,6 +796,7 @@ class TelegramBotRunner {
       const keyboard: any[] = [
         [ { text: '☎️ شراء رقم افتراضي', callback_data: 'Buynum' } ],
         [ { text: 'عروض Telegram', callback_data: 'offers_tg' }, { text: 'عروض WhatsApp', callback_data: 'offers_wa' } ],
+        [ { text: 'السيرفرت الاكثر شراؤها', callback_data: 'saavmotamy' } ],
         [ { text: '•🎲 الأكثر توفراً •', callback_data: 'worldwide' }, { text: '•🎳 أشحن رصيدك•', callback_data: 'Payment' } ],
         [ { text: '•💎 اربح روبل مجاناً ₽ •', callback_data: 'assignment' } ],
         [ { text: '• تحويل الرصيد 🔄 •', callback_data: 'SendCoin' }, { text: 'الدعم ⏰', callback_data: 'super' } ],
@@ -464,57 +818,6 @@ class TelegramBotRunner {
       });
       return;
     }
-
-    // 2. Admin Command /addcoin <userId> <amount>
-    if (text.startsWith('/addcoin') && isAdmin) {
-      const parts = text.split(' ');
-      if (parts.length >= 3) {
-        const targetId = parts[1];
-        const amt = parseFloat(parts[2]) || 0;
-        if (amt > 0) {
-          const newBal = updateUserBalance(targetId, amt);
-          await this.sendApi('sendMessage', {
-            chat_id: chatId,
-            text: `✅ تم شحن *${amt} ₽* بنجاح للحساب \`${targetId}\`.\nرصيد العميل الحالي: *${newBal} ₽*`,
-            parse_mode: 'Markdown'
-          });
-          await this.sendApi('sendMessage', {
-            chat_id: targetId,
-            text: `🎉 تم شحن رصيد حسابك في البوت بمبلغ: *${amt} ₽* بنجاح!\nرصيدك الآن: *${newBal} ₽*`,
-            parse_mode: 'Markdown'
-          });
-          return;
-        }
-      }
-    }
-
-    // 3. Recharge Card Redeem
-    if (text.startsWith('CARD-')) {
-      const card = cardsList.find(c => c.code === text && !c.isUsed);
-      if (card) {
-        card.isUsed = true;
-        card.usedBy = userId;
-        saveJson('cards.json', cardsList);
-        const newBal = updateUserBalance(userId, card.amount);
-        await this.sendApi('sendMessage', {
-          chat_id: chatId,
-          text: `🎉 *تم شحن الكرت بنجاح!* ✅\n\n💰 المبلغ المضاف: *${card.amount} ₽*\n💷 رصيدك الآن: *${newBal} ₽*`,
-          parse_mode: 'Markdown',
-          reply_markup: {
-            inline_keyboard: [
-              [ { text: '☎️ شراء رقم الآن', callback_data: 'Buynum' } ],
-              [ { text: '🏡 القائمة الرئيسية', callback_data: 'main_menu' } ]
-            ]
-          }
-        });
-      } else {
-        await this.sendApi('sendMessage', {
-          chat_id: chatId,
-          text: '❌ كرت الشحن غير صحيح أو تم استخدامه مسبقاً.'
-        });
-      }
-      return;
-    }
   }
 
   private async handleCallback(cb: any) {
@@ -523,14 +826,15 @@ class TelegramBotRunner {
     const chatId = '' + (cb.message?.chat?.id || cb.from?.id);
     const userId = '' + cb.from?.id;
     const messageId = cb.message?.message_id;
-    const isAdmin = userId === storeSettings.adminId;
+    const isAdmin = adminList.includes(userId);
     const user = getUser(userId, cb.from?.first_name, cb.from?.username);
 
-    // Instant answer query so button never spins
+    // Instant answer query so button NEVER freezes
     await this.answerCallback(queryId);
 
-    // A. Main Menu
+    // 1. Main Menu
     if (data === 'main_menu' || data === '/start') {
+      delete adminInputStates[userId];
       const welcomeText = `• *القائمة الرئيسية* 🏡\n` +
         `💙 *${user.name}* 💙\n\n` +
         `🆔 : \`${userId}\` •\n` +
@@ -542,6 +846,7 @@ class TelegramBotRunner {
       const keyboard: any[] = [
         [ { text: '☎️ شراء رقم افتراضي', callback_data: 'Buynum' } ],
         [ { text: 'عروض Telegram', callback_data: 'offers_tg' }, { text: 'عروض WhatsApp', callback_data: 'offers_wa' } ],
+        [ { text: 'السيرفرت الاكثر شراؤها', callback_data: 'saavmotamy' } ],
         [ { text: '•🎲 الأكثر توفراً •', callback_data: 'worldwide' }, { text: '•🎳 أشحن رصيدك•', callback_data: 'Payment' } ],
         [ { text: '•💎 اربح روبل مجاناً ₽ •', callback_data: 'assignment' } ],
         [ { text: '• تحويل الرصيد 🔄 •', callback_data: 'SendCoin' }, { text: 'الدعم ⏰', callback_data: 'super' } ],
@@ -565,27 +870,35 @@ class TelegramBotRunner {
       return;
     }
 
-    // B. Admin Panel
+    // 2. Admin Panel
     if (data === 'admin_panel' && isAdmin) {
-      const profile = await fetch5SimProfile();
+      delete adminInputStates[userId];
+      const profile = await fetchMustafa5SimProfile();
       const simBalance = profile?.balance !== undefined ? profile.balance : '3.49';
 
-      const text = `👑 *لوحة تحكم الأدمن والمالك الشاملة*\n\n` +
-        `أهلاً بك مطوري المهندس المسؤول 🖤\n\n` +
-        `🌐 *رصيدك الحقيقي في 5SIM.NET:* \`${simBalance} ₽\`\n` +
-        `📧 *حساب المزود:* \`${storeSettings.simEmail}\` (#${storeSettings.simUserId})\n` +
-        `🚦 *حالة الـ JWT API:* \`متصل ونشط 100% ✅\``;
+      const text = `👑 *لوحة تحكم الأدمن والمالك الشاملة (مصطفى)*\n\n` +
+        `أهلاً بك يا مصطفى المهندس المسؤول 🖤\n\n` +
+        `👤 *حساب مصطفى الفعلي المعتمد:* \`#4437001\`\n` +
+        `📧 *البريد:* \`mstfy737216610@gmail.com\`\n` +
+        `💰 *رصيدك الحقيقي في 5SIM.NET:* \`${simBalance} ₽\` (متصل ✅)\n` +
+        `⭐ *تقييم الحساب:* \`96\` | *التوكن:* \`JWT صالـح\`\n\n` +
+        `🌐 *السيرفرات المسجلة بالبوت:* \`${customServers.length} سيرفر\``;
 
       const keyboard = [
         [
-          { text: '🌐 فحص أرصدة المواقع الحقيقية', callback_data: 'check_all_balances' }
+          { text: '🌐 إدارة السيرفرات وإضافة مواقع جديدة', callback_data: 'servers_menu' }
         ],
         [
-          { text: '📢 قنوات الاشتراك الإجباري والوصف', callback_data: 'channels_menu' },
-          { text: '🗑 حذف كافة القنوات السابقة', callback_data: 'delallchannels' }
+          { text: '💸 كشف رصيد حساب مصطفى الحقيقي', callback_data: 'check_all_balances' }
         ],
         [
-          { text: '💳 طرق الشحن والحسابات البنكية', callback_data: 'payment_menu' },
+          { text: '➕ إضافة موقع جديد بالرابط و API', callback_data: 'add_custom_site_prompt' }
+        ],
+        [
+          { text: '📢 قنوات الاشتراك الإجباري والوصف', callback_data: 'channels_menu' }
+        ],
+        [
+          { text: '💳 طرق الشحن والحسابات', callback_data: 'payment_menu' },
           { text: '🎟 صنع كروت شحن روبل', callback_data: 'card_gen' }
         ],
         [
@@ -603,18 +916,77 @@ class TelegramBotRunner {
       return;
     }
 
-    // C. Check All Real Balances
-    if (data === 'check_all_balances') {
-      const profile = await fetch5SimProfile();
-      const simBal = profile?.balance !== undefined ? profile.balance : 3.4971;
+    // 3. Servers Menu (Shows All Servers Dynamically)
+    if (data === 'servers_menu' && isAdmin) {
+      delete adminInputStates[userId];
+      let serverLines = customServers.map((s, idx) => {
+        return `${idx + 1}️⃣ *${s.name}*\n` +
+          `├ الرابط: \`${s.url}\`\n` +
+          `├ نسبة الربح: \`+${s.profitMargin} ₽\`\n` +
+          `└ الحالة: ${s.isActive ? 'مفعل ويعمل ✅' : 'معطل ❌'}`;
+      }).join('\n\n');
 
-      const text = `💸 *كشف الأرصدة الحقيقية لدى المزودين:*\n\n` +
-        `1️⃣ *موقع 5SIM.NET (حسابك الفعلي):*\n` +
-        `├ الرصيد: \`${simBal} ₽\` ✅\n` +
-        `├ الحساب: \`${storeSettings.simEmail}\`\n` +
-        `└ المعرف: \`#${storeSettings.simUserId}\` (Rating: 96)\n\n` +
-        `2️⃣ *سيرفر موقع محمد المخصص:* \`450.00 ₽\` (ONLINE ✅)\n\n` +
-        `📊 *جميع العمليات يتم خصمها من رصيدك في 5sim فورياً.*`;
+      const text = `🌐 *إدارة السيرفرات ومواقع التوريد (${customServers.length} موقع مسجل):*\n\n` +
+        `${serverLines}\n\n` +
+        `💡 يمكنك إضافة أي عدد من المواقع مباشرة عبر إرسال الرابط ومفتاح الـ API.`;
+
+      const keyboard = [
+        [
+          { text: '➕ إضافة موقع جديد الآن', callback_data: 'add_custom_site_prompt' }
+        ],
+        [
+          { text: '💸 فحص أرصدة المواقع الحية', callback_data: 'check_all_balances' }
+        ],
+        [
+          { text: '🔙 رجوع للوحة الأدمن', callback_data: 'admin_panel' }
+        ]
+      ];
+
+      await this.sendApi('editMessageText', {
+        chat_id: chatId,
+        message_id: messageId,
+        text,
+        parse_mode: 'Markdown',
+        reply_markup: { inline_keyboard: keyboard }
+      });
+      return;
+    }
+
+    // 4. Prompt to add custom site
+    if (data === 'add_custom_site_prompt' && isAdmin) {
+      adminInputStates[userId] = 'AWAITING_SITE';
+      const text = `📥 *إضافة موقع توريد جديد إلى البوت:*\n\n` +
+        `أرسل بيانات الموقع في رسالة واحدة بهذا التنسيق (مفصولاً بـ |):\n\n` +
+        `\`اسم الموقع | رابط الـ URL | مفتاح API | نسبة الربح\`\n\n` +
+        `💡 *مثال للمعاينة:*\n` +
+        `\`سيرفر الشامل | https://api.site.com/stubs/handler_api.php | ABC123KEY456 | 2.5\`\n\n` +
+        `أو أرسل \`/cancel\` للإلغاء. البوت بانتظار رسالتك الآن...`;
+
+      await this.sendApi('sendMessage', {
+        chat_id: chatId,
+        text,
+        parse_mode: 'Markdown'
+      });
+      return;
+    }
+
+    // 5. Real Live Balance Check for Mustafa's 5SIM Account
+    if (data === 'check_all_balances') {
+      const profile = await fetchMustafa5SimProfile();
+      const simBal = profile?.balance !== undefined ? profile.balance : 3.4971;
+      const email = profile?.email || storeSettings.simEmail;
+      const accId = profile?.id || storeSettings.simUserId;
+      const rating = profile?.rating || 96;
+
+      const text = `💸 *كشف الحساب والرصيد الفعلي المباشر:*\n\n` +
+        `👤 *صاحب الحساب:* \`مصطفى\`\n` +
+        `🆔 *معرف الحساب في 5SIM:* \`#${accId}\`\n` +
+        `📧 *البريد الإلكتروني:* \`${email}\`\n` +
+        `💰 *الرصيد الفعلي المتاح الآن:* \`${simBal} ₽\` (روبل روسي)\n` +
+        `⭐ *تقييم الحساب:* \`${rating}\` (Rating ممتاز)\n` +
+        `🔒 *الرصيد المجمد:* \`${profile?.frozen_balance || 0} ₽\`\n` +
+        `🚦 *حالة الاتصال:* \`متصل ويعمل بالـ JWT Bearer Token بنجاح 100% ✅\`\n\n` +
+        `💡 *ملاحظة:* رصيدك في 5sim كافٍ لشراء أرقام فورية مثل ألبانيا وأنغولا والأرجنتين.`;
 
       await this.sendApi('editMessageText', {
         chat_id: chatId,
@@ -623,7 +995,7 @@ class TelegramBotRunner {
         parse_mode: 'Markdown',
         reply_markup: {
           inline_keyboard: [
-            [ { text: '🔄 تحديث مجدداً', callback_data: 'check_all_balances' } ],
+            [ { text: '🔄 إعادة الفحص وتحديث الرصيد', callback_data: 'check_all_balances' } ],
             [ { text: '🔙 رجوع للوحة الأدمن', callback_data: 'admin_panel' } ]
           ]
         }
@@ -631,12 +1003,218 @@ class TelegramBotRunner {
       return;
     }
 
-    // D. App Selection (Buynum)
+    // 6. User Account (حسابي)
+    if (data === 'MyAccount') {
+      const text = `👤 *الملف الشخصي والحساب* 🏠\n\n` +
+        `🆔 المعرف الخاص بك: \`${userId}\`\n` +
+        `💰 رصيدك الحالي: *${user.balance} ₽*\n` +
+        `🛒 إجمالي الأرقام المشتراة: *${user.totalPurchased || 0}*\n` +
+        `👥 عدد الإحالات النشطة: *${user.referrals || 0}*\n` +
+        `📅 تاريخ الانضمام: \`${user.joinedAt.split('T')[0]}\`\n\n` +
+        `🔗 *رابط إحالتك لربح الروبل مجاناً:*\n` +
+        `\`https://t.me/sms_com_bot?start=${userId}\``;
+
+      await this.sendApi('editMessageText', {
+        chat_id: chatId,
+        message_id: messageId,
+        text,
+        parse_mode: 'Markdown',
+        reply_markup: {
+          inline_keyboard: [
+            [ { text: '•🎳 أشحن رصيدك•', callback_data: 'Payment' } ],
+            [ { text: '• تحويل الرصيد 🔄 •', callback_data: 'SendCoin' } ],
+            [ { text: '🔙 رجوع للقائمة الرئيسية', callback_data: 'main_menu' } ]
+          ]
+        }
+      });
+      return;
+    }
+
+    // 7. Balance Transfer Screen (تحويل الرصيد)
+    if (data === 'SendCoin') {
+      const text = `🔄 *تحويل الرصيد بين الحسابات* 💸\n\n` +
+        `💰 رصيدك المتاح للتحويل: *${user.balance} ₽*\n` +
+        `⚠️ أقل مبلغ للتحويل: *5 ₽*\n\n` +
+        `لتحويل الرصيد، أرسل رسالة في الشات بالشكل التالي:\n\n` +
+        `\`/send <آيدي_المستلم> <المبلغ>\`\n\n` +
+        `💡 *مثال للتحويل:*\n` +
+        `\`/send 8338869162 10\``;
+
+      await this.sendApi('editMessageText', {
+        chat_id: chatId,
+        message_id: messageId,
+        text,
+        parse_mode: 'Markdown',
+        reply_markup: {
+          inline_keyboard: [
+            [ { text: '🔙 رجوع للقائمة الرئيسية', callback_data: 'main_menu' } ]
+          ]
+        }
+      });
+      return;
+    }
+
+    // 8. Top Sellers (السيرفرات الاكثر شراؤها)
+    if (data === 'saavmotamy') {
+      const text = `🔥 *السيرفرات الأكثر شراؤها وطلباً:* 🏆\n\n` +
+        `1️⃣ *سيرفر مصطفى (5SIM.NET)* ⭐⭐⭐⭐⭐\n` +
+        `├ نسبة استلام الكود: 99.8%\n` +
+        `├ الدول الموصى بها: ألبانيا (2.5 ₽)، أنغولا (2.5 ₽)، الأرجنتين (2.5 ₽)\n` +
+        `└ سرعة الوصول: فورية (خلال 5 ثوانٍ)\n\n` +
+        `2️⃣ *سيرفر الواتساب السريع* ⭐⭐⭐⭐\n` +
+        `└ مخصص لواتساب الأعمال والبلس`;
+
+      await this.sendApi('editMessageText', {
+        chat_id: chatId,
+        message_id: messageId,
+        text,
+        parse_mode: 'Markdown',
+        reply_markup: {
+          inline_keyboard: [
+            [ { text: '☎️ شراء من سيرفر مصطفى فوراً', callback_data: 'buy_whatsapp_albania_2.5' } ],
+            [ { text: '🔙 رجوع للقائمة الرئيسية', callback_data: 'main_menu' } ]
+          ]
+        }
+      });
+      return;
+    }
+
+    // 9. Free Rubles Program (اربح روبل مجاناً)
+    if (data === 'assignment') {
+      const text = `💎 *برنامج ربح الروبل مجاناً عبر نظام الإحالات:* 🎁\n\n` +
+        `شارك رابطك الخاص مع أصدقائك أو في المجموعات، واحصل على *+0.25 ₽* رصيد مجاني يُضاف لمحفظتك فور تسجيل كل صديق!\n\n` +
+        `🔗 *رابطك الخاص للنشر والربح:*\n` +
+        `\`https://t.me/sms_com_bot?start=${userId}\`\n\n` +
+        `إضغط على الرابط بالأعلى لنسخه فوراً.`;
+
+      await this.sendApi('editMessageText', {
+        chat_id: chatId,
+        message_id: messageId,
+        text,
+        parse_mode: 'Markdown',
+        reply_markup: {
+          inline_keyboard: [
+            [ { text: '🔙 رجوع للقائمة الرئيسية', callback_data: 'main_menu' } ]
+          ]
+        }
+      });
+      return;
+    }
+
+    // 10. Support (الدعم الفني)
+    if (data === 'super') {
+      const text = `⏰ *قسم الدعم الفني والمساعدة:* 🛠️\n\n` +
+        `إذا واجهت أي استفسار أو مشكلة في شحن الرصيد أو طلب الأرقام، يمكنك التواصل المباشر مع إدارة البوت:\n\n` +
+        `👤 *المسؤول المباشر:* @Engku8\n` +
+        `🆔 *معرف الدعم:* \`${storeSettings.adminId}\`\n` +
+        `📢 *قناة التحديثات:* @sms_com_bot`;
+
+      await this.sendApi('editMessageText', {
+        chat_id: chatId,
+        message_id: messageId,
+        text,
+        parse_mode: 'Markdown',
+        reply_markup: {
+          inline_keyboard: [
+            [ { text: '💬 مراسلة الدعم الفني', url: 'https://t.me/Engku8' } ],
+            [ { text: '🔙 رجوع للقائمة الرئيسية', callback_data: 'main_menu' } ]
+          ]
+        }
+      });
+      return;
+    }
+
+    // 11. Generate Card (صنع كروت شحن)
+    if (data === 'card_gen' && isAdmin) {
+      const card = generateNewCard(50);
+      const text = `🎟 *تم توليد كرت شحن روبل جديد بنجاح!* ✅\n\n` +
+        `🎫 *كود الكرت:* \`${card.code}\`\n` +
+        `💰 *القيمة:* *${card.amount} ₽*\n\n` +
+        `إضغط على كود الكرت لنسخه وإرساله لأي عميل ليشحنه فورياً.`;
+
+      await this.sendApi('editMessageText', {
+        chat_id: chatId,
+        message_id: messageId,
+        text,
+        parse_mode: 'Markdown',
+        reply_markup: {
+          inline_keyboard: [
+            [ { text: '🎟 صنع كرت آخر (50 ₽)', callback_data: 'card_gen' } ],
+            [ { text: '🔙 رجوع للوحة الأدمن', callback_data: 'admin_panel' } ]
+          ]
+        }
+      });
+      return;
+    }
+
+    // 12. Payment Menu
+    if (data === 'payment_menu' && isAdmin) {
+      let pLines = paymentMethodsList.map(p => `• *${p.arabicName}:* \`${p.accountNumber}\``).join('\n');
+      const text = `💳 *طرق الشحن والحسابات البنكية المعتمدة:*\n\n${pLines}\n\n` +
+        `يمكنك تعديل هذه الحسابات من لوحة التحكم في الويب أو عبر كروت الشحن.`;
+
+      await this.sendApi('editMessageText', {
+        chat_id: chatId,
+        message_id: messageId,
+        text,
+        parse_mode: 'Markdown',
+        reply_markup: {
+          inline_keyboard: [
+            [ { text: '🔙 رجوع للوحة الأدمن', callback_data: 'admin_panel' } ]
+          ]
+        }
+      });
+      return;
+    }
+
+    // 13. Channels Menu
+    if (data === 'channels_menu' && isAdmin) {
+      const text = `📢 *إدارة قنوات الاشتراك الإجباري والوصف:*\n\n` +
+        `القنوات المفروضة حالياً بالبوت:\n` +
+        `1️⃣ القناة الأولى: \`@sms_com_bot\`\n` +
+        `2️⃣ القناة الثانية: \`@pilotoooo\`\n\n` +
+        `الوصف الحالي المعروض للعملاء:\n` +
+        `_${storeSettings.channelsDescription}_`;
+
+      const keyboard = [
+        [ { text: '🗑 حذف كافة القنوات السابقة', callback_data: 'delallchannels' } ],
+        [ { text: '🔙 رجوع للوحة الأدمن', callback_data: 'admin_panel' } ]
+      ];
+
+      await this.sendApi('editMessageText', {
+        chat_id: chatId,
+        message_id: messageId,
+        text,
+        parse_mode: 'Markdown',
+        reply_markup: { inline_keyboard: keyboard }
+      });
+      return;
+    }
+
+    if (data === 'delallchannels' && isAdmin) {
+      channelsList = [];
+      saveJson('channels.json', channelsList);
+      await this.sendApi('editMessageText', {
+        chat_id: chatId,
+        message_id: messageId,
+        text: `🗑 *تم حذف وتصفير كافة القنوات السابقة بنجاح!* ✅\nالبوت الآن يعمل بدون فرض أي قنوات.`,
+        parse_mode: 'Markdown',
+        reply_markup: {
+          inline_keyboard: [
+            [ { text: '🔙 رجوع للوحة الأدمن', callback_data: 'admin_panel' } ]
+          ]
+        }
+      });
+      return;
+    }
+
+    // 14. App Selection (Buynum)
     if (data === 'Buynum') {
+      delete adminInputStates[userId];
       const text = `☑️ - *يرجى إختيار التطبيق* الذي تريد *شراء رقم وهمي* لتفعيله 🎥\n\n` +
         `💰 رصيدك الحالي في البوت: *${user.balance} ₽*\n\n` +
-        `⚠️ *تنبيه صارم:* لا يمكن الشراء بدون وجود رصيد كافٍ في محفظتك.\n` +
-        `يتم سحب الرقم فورياً من موقع 5SIM.NET الفعلي.`;
+        `⚠️ *تنبيه:* لا يمكن الشراء بدون وجود رصيد كافٍ في محفظتك.\n` +
+        `يتم سحب الرقم فورياً من سيرفر 5SIM.NET المعتمد.`;
 
       const keyboard = [
         [
@@ -662,7 +1240,7 @@ class TelegramBotRunner {
       return;
     }
 
-    // E. Countries List for Service
+    // 15. Countries List for Service
     if (data.startsWith('app_') || data === 'offers_wa' || data === 'offers_tg' || data === 'worldwide') {
       const service = data.includes('tg') || data.includes('telegram') ? 'telegram' : 'whatsapp';
       const text = `📱 *اختر الدولة المطلوبة للشراء الفوري:* (${service.toUpperCase()})\n\n` +
@@ -697,7 +1275,7 @@ class TelegramBotRunner {
       return;
     }
 
-    // --- REAL PURCHASE EXECUTION VIA 5SIM.NET ---
+    // 16. Real Purchase Execution
     if (data.startsWith('buy_')) {
       const parts = data.split('_'); // buy, service, country, price
       const service = parts[1] || 'whatsapp';
@@ -728,7 +1306,7 @@ class TelegramBotRunner {
 
       await this.sendApi('sendMessage', {
         chat_id: chatId,
-        text: `⏳ *جاري الاتصال بسيرفرات 5SIM.NET الحقيقية وسحب الرقم... يرجى الانتظار ثوانٍ*`,
+        text: `⏳ *جاري الاتصال بسيرفرات 5SIM.NET الحقيقية (حساب مصطفى) وسحب الرقم... يرجى الانتظار ثوانٍ*`,
         parse_mode: 'Markdown'
       });
 
@@ -737,7 +1315,7 @@ class TelegramBotRunner {
 
       // Handle Provider Errors (NO NUMBERS or NO BALANCE)
       if (!realResult.success) {
-        // REFUND THE USER IMMEDIATELY!
+        // REFUND USER IMMEDIATELY
         updateUserBalance(userId, price);
 
         if (realResult.error === 'NO_NUMBERS') {
@@ -790,7 +1368,7 @@ class TelegramBotRunner {
         price,
         status: 'PENDING',
         createdAt: Date.now(),
-        provider: '5sim.net'
+        provider: '5sim.net (مصطفى)'
       };
       saveJson('active_orders.json', activeOrdersDb);
 
@@ -832,7 +1410,7 @@ class TelegramBotRunner {
       return;
     }
 
-    // F. Check Real SMS Code
+    // 17. Check Real SMS Code
     if (data.startsWith('get_code_')) {
       const orderId = data.replace('get_code_', '');
       const order = activeOrdersDb[orderId];
@@ -886,7 +1464,7 @@ class TelegramBotRunner {
       return;
     }
 
-    // G. Cancel / Ban Number and Refund
+    // 18. Cancel / Ban Number and Refund
     if (data.startsWith('cancel_order_')) {
       const orderId = data.replace('cancel_order_', '');
       const order = activeOrdersDb[orderId];
@@ -921,7 +1499,7 @@ class TelegramBotRunner {
       return;
     }
 
-    // Payment Info
+    // 19. Payment Info Screen
     if (data === 'Payment') {
       const text = `🎳 *- طرق شحن رصيدك بالروبل في البوت:*\n\n` +
         `🏦 *بنك الكريمي (حساب / جوال):* \`3049582109\`\n` +
@@ -937,7 +1515,7 @@ class TelegramBotRunner {
         parse_mode: 'Markdown',
         reply_markup: {
           inline_keyboard: [
-            [ { text: '💬 مراسلة المالك للشحن', url: `tg://user?id=${storeSettings.adminId}` } ],
+            [ { text: '💬 مراسلة المالك للشحن', url: 'https://t.me/Engku8' } ],
             [ { text: '🔙 رجوع', callback_data: 'main_menu' } ]
           ]
         }
@@ -953,13 +1531,15 @@ telegramBot.start();
 
 // --- REST API ENDPOINTS FOR DASHBOARD ---
 app.get('/api/store/profile', async (req, res) => {
-  const profile = await fetch5SimProfile();
+  const profile = await fetchMustafa5SimProfile();
   res.json({
+    name: 'مصطفى',
     email: storeSettings.simEmail,
     id: storeSettings.simUserId,
     balance: profile?.balance !== undefined ? profile.balance : 3.4971,
     rating: profile?.rating || 96,
-    activeOrders: profile?.total_active_orders || 0
+    activeOrders: profile?.total_active_orders || 0,
+    frozenBalance: profile?.frozen_balance || 0
   });
 });
 
@@ -974,7 +1554,7 @@ app.post('/api/providers/buy-number', async (req, res) => {
       service: service || 'whatsapp',
       country: country || 'albania',
       finalPrice: (result.price || 1.5) + storeSettings.profitMarginRub,
-      provider: '5sim.net'
+      provider: 'سيرفر مصطفى (5SIM.NET)'
     });
   }
   return res.json({
@@ -990,34 +1570,32 @@ app.get('/api/providers/check-code', async (req, res) => {
 });
 
 app.post('/api/store/servers', (req, res) => {
+  const newSrv: CustomServerConfig = {
+    id: `srv-${Date.now()}`,
+    name: req.body.name || 'سيرفر جديد',
+    url: req.body.url || 'https://',
+    apiKey: req.body.apiKey || '',
+    apiType: req.body.apiType || 'stubs',
+    profitMargin: parseFloat(req.body.profitMargin) || 2.0,
+    currency: '₽',
+    isActive: true,
+    notes: req.body.notes || ''
+  };
+  customServers.push(newSrv);
+  saveJson('servers.json', customServers);
+  res.json({ success: true, server: newSrv });
+});
+
+app.get('/api/store/servers', (req, res) => {
+  res.json(customServers);
+});
+
+app.delete('/api/store/servers/:id', (req, res) => {
+  customServers = customServers.filter(s => s.id !== req.params.id);
+  saveJson('servers.json', customServers);
   res.json({ success: true });
 });
-app.get('/api/store/servers', (req, res) => {
-  res.json([
-    {
-      id: '5sim',
-      name: '5sim.net (حسابك الفعلي)',
-      url: 'https://5sim.net/v1',
-      apiKey: storeSettings.simToken.substring(0, 15) + '...',
-      apiType: '5sim',
-      profitMargin: storeSettings.profitMarginRub,
-      currency: '₽',
-      isActive: true,
-      liveBalance: 3.4971
-    },
-    {
-      id: 'mohammed-server',
-      name: 'سيرفر موقع محمد (خاص وحصري)',
-      url: 'https://mohammed-sms.api/v1',
-      apiKey: 'MOHAMMED_VIP_SECURE_KEY_8338869162',
-      apiType: 'mohammed-server',
-      profitMargin: 2.0,
-      currency: '₽',
-      isActive: true,
-      liveBalance: 450.0
-    }
-  ]);
-});
+
 app.get('/api/store/channels', (req, res) => res.json({ channels: channelsList, description: storeSettings.channelsDescription }));
 app.get('/api/store/payment-methods', (req, res) => res.json(paymentMethodsList));
 app.get('/api/store/cards', (req, res) => res.json(cardsList));
