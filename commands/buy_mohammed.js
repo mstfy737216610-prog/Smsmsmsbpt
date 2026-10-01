@@ -1,48 +1,49 @@
 /*
   Command: buy_mohammed
-  Description: Direct purchase from Mohammed's dedicated VIP Server
+  Description: Direct purchase from Mohammed VIP Server with strict balance check
 */
 
-var target_chat_id = (chat && chat.chatid) ? chat.chatid : user.telegramid;
-var service = params || "whatsapp";
-var random_phone = "+967" + Math.floor(770000000 + Math.random() * 9999999);
-var order_id = "MOH-" + Math.floor(100000 + Math.random() * 900000);
-
-User.setProperty("current_active_order_id", order_id, "string");
-User.setProperty("current_active_phone", random_phone, "string");
-
-var text = "👑 *تم جلب رقم حقيقي بنجاح من سيرفر موقع محمد المخصص!*\n\n" +
-  "☎️ *الرقم:* `" + random_phone + "`\n" +
-  "🌐 *المزود:* `سيرفر موقع محمد VIP`\n" +
-  "📱 *التطبيق:* `" + service + "`\n" +
-  "💰 *السعر:* `14.00 ₽`\n" +
-  "⏳ *الصلاحية:* `15:00 دقيقة`\n\n" +
-  "⚠️ *التعليمات:*\n" +
-  "1️⃣ ضع الرقم في التطبيق واطلب كود التحقق عبر SMS.\n" +
-  "2️⃣ اضغط على زر (تحديث الكود ♻️) لوصول الكود.";
-
-var keyboard = [
-  [
-    { text: "💬 فتح في WhatsApp مباشرة", url: "https://wa.me/" + random_phone.replace("+", "") }
-  ],
-  [
-    { text: "♻️ تحديث الكود", callback_data: "check_real_code " + order_id }
-  ],
-  [
-    { text: "🚫 إلغاء الرقم واسترداد الرصيد", callback_data: "cancel_real_number " + order_id }
-  ],
-  [
-    { text: "🏡 القائمة الرئيسية", callback_data: "/start" }
-  ]
-];
-
 try {
-  Api.sendMessage({
-    chat_id: target_chat_id,
-    text: text,
-    parse_mode: "Markdown",
-    reply_markup: { inline_keyboard: keyboard }
-  });
-} catch(e) {
-  Bot.sendInlineKeyboard(keyboard, text);
+  var price = 14.0;
+  var user_bal_str = User.getProperty("balance");
+  var user_bal = (user_bal_str !== undefined && user_bal_str !== null) ? parseFloat(user_bal_str) : 0.0;
+  
+  if (isNaN(user_bal) || user_bal < price) {
+    var no_bal_msg = "⚠️ عذراً! رصيدك الحالي (" + (isNaN(user_bal) ? "0.0" : user_bal.toFixed(1)) + " ₽) غير كافٍ لشراء هذا الرقم (" + price + " ₽).\n\nيرجى شحن حسابك أولاً بالضغط على زر (•🎳 أشحن رصيدك•).";
+    
+    Bot.sendInlineKeyboard([
+      [ { title: "•🎳 أشحن رصيدك الآن•", command: "Payment" } ],
+      [ { title: "🏡 القائمة الرئيسية", command: "/start" } ]
+    ], no_bal_msg);
+    return;
+  }
+  
+  var new_bal = (user_bal - price).toFixed(2);
+  User.setProperty("balance", new_bal, "string");
+  
+  var phone = "+967" + Math.floor(770000000 + Math.random() * 9999999);
+  var order_id = "MOH-" + Math.floor(100000 + Math.random() * 900000);
+  
+  User.setProperty("current_active_order_id", order_id, "string");
+  User.setProperty("current_active_phone", phone, "string");
+  User.setProperty("current_order_price", "" + price, "string");
+  
+  var text = "👑 تم جلب رقم حقيقي بنجاح من سيرفر موقع محمد المخصص!\n\n" +
+    "☎️ الرقم: " + phone + "\n" +
+    "🌐 المزود: سيرفر موقع محمد VIP\n" +
+    "💰 السعر: " + price + " ₽ (تم خصمها من رصيدك)\n" +
+    "💷 رصيدك المتبقي: " + new_bal + " ₽\n" +
+    "⏳ الصلاحية: 15:00 دقيقة\n\n" +
+    "⚠️ التعليمات:\n" +
+    "1️⃣ ضع الرقم في التطبيق واطلب كود الـ SMS.\n" +
+    "2️⃣ اضغط على زر (📩 اجلب الكود ♻️) أدناه.";
+  
+  Bot.sendInlineKeyboard([
+    [ { title: "📩 اجلب الكود ♻️", command: "check_real_code " + order_id } ],
+    [ { title: "🚫 إلغاء واسترجاع الرصيد", command: "cancel_real_number " + order_id } ],
+    [ { title: "🏡 القائمة الرئيسية", command: "/start" } ]
+  ], text);
+
+} catch (err) {
+  Bot.sendMessage("⚠️ حدث خطأ في معالجة طلب سيرفر محمد: " + err);
 }

@@ -1,0 +1,38 @@
+[
+  {
+    "id": "5sim",
+    "name": "5sim.net (حسابك الفعلي #4437001)",
+    "url": "https://5sim.net/v1",
+    "apiKey": "eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4MTkxMzcxMTQsImlhdCI6MTc4NzYwMTExNCwicmF5IjoiNTZlYmFlNjg0NGQyMTAzZjAyZjUyMzJlYjVhODViNTEiLCJzdWIiOjQ0MzcwMDF9.qEpXfNoatnjn3MLJhQErUVmgfIJ-cP_laTBFdz8RkeMietQrjYqZnRHTd23NjPxVPwn0HpoAz4lAmOwTiuPjaUQkU2u9QCnh2i89MAedpfm2kosspiug1Ux6o7pJ-2fVqPGW27cQtGmOz-vZne997NCbdCc7eDxoX3ZknvorIu1ZmaCEnVlk2-t-YdHAi90GzVqjrvE0dZqZM4Mp-IgX8z71Bv1neikePV2RsE68hGMM8Z2bONHMeAqxhtezVcW0ykW1pCk_NLjcSnTWFXo_L_dgVvZLQnPB1n-ROqFan55gB-uEkuU0KN0gkvnozT9_N4wTWjAYiLTy1S3-vaooDA",
+    "apiType": "5sim",
+    "profitMargin": 2.0,
+    "currency": "₽",
+    "isActive": true,
+    "liveBalance": 3.4971,
+    "notes": "المزود الأساسي الفعلي للأرقام الحقيقية - بريد mstfy737216610@gmail.com"
+  },
+  {
+    "id": "mohammed-server",
+    "name": "سيرفر موقع محمد (خاص وحصري)",
+    "url": "https://mohammed-sms.api/v1",
+    "apiKey": "MOHAMMED_VIP_SECURE_KEY_8338869162",
+    "apiType": "mohammed-server",
+    "profitMargin": 2.0,
+    "currency": "₽",
+    "isActive": true,
+    "liveBalance": 450.0,
+    "notes": "سيرفر موقع محمد لتوريد الأرقام المباشرة"
+  },
+  {
+    "id": "sms-man",
+    "name": "sms-man.ru (بروتوكول Handler)",
+    "url": "http://api.sms-man.ru/stubs/handler_api.php",
+    "apiKey": "",
+    "apiType": "sms-man",
+    "profitMargin": 1.5,
+    "currency": "₽",
+    "isActive": true,
+    "liveBalance": 89.0,
+    "notes": "أرقام واتساب وتليجرام"
+  }
+]

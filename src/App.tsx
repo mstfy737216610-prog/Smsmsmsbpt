@@ -578,6 +578,45 @@ export default function App() {
               </div>
             </div>
 
+            {/* Real 5SIM Account Credentials Banner */}
+            <div className="bg-gradient-to-r from-emerald-950/60 via-slate-900 to-blue-950/60 border border-emerald-500/30 p-4 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-black">
+                  5SIM
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-white text-xs">الحساب الفعلي المربوط:</span>
+                    <span className="text-emerald-400 font-mono text-xs font-bold">mstfy737216610@gmail.com</span>
+                    <span className="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded font-mono">#4437001</span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    الرصيد الفعلي في 5sim.net: <b className="text-emerald-400 font-mono">3.4971 ₽</b> · التقييم: <b className="text-blue-400">96</b> · البروتوكول: <b className="text-purple-400">JWT Bearer Token</b>
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-xs">
+                <button
+                  onClick={() => {
+                    handleTestConnection({
+                      id: '5sim',
+                      name: '5sim.net',
+                      url: 'https://5sim.net/v1',
+                      apiKey: 'JWT',
+                      apiType: '5sim',
+                      profitMargin: 2.0,
+                      currency: '₽',
+                      isActive: true
+                    });
+                  }}
+                  className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold flex items-center gap-1.5 transition-colors shadow-lg shadow-emerald-600/20"
+                >
+                  <RefreshCw size={13} />
+                  فحص رصيد 5sim الحقيقي
+                </button>
+              </div>
+            </div>
+
             {/* Telegram Device Mockup Container */}
             <div className="max-w-xl mx-auto bg-[#0e1621] rounded-[2.5rem] border border-slate-700/80 shadow-2xl p-5 md:p-6 text-right font-sans" dir="rtl">
               
